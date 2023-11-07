@@ -1,0 +1,30 @@
+[2023-11-03T14:00:09.415+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: movies-etl-dag.preprocess_data manual__2023-11-03T14:00:01.038102+00:00 [queued]>
+[2023-11-03T14:00:09.422+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: movies-etl-dag.preprocess_data manual__2023-11-03T14:00:01.038102+00:00 [queued]>
+[2023-11-03T14:00:09.422+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2023-11-03T14:00:09.439+0000] {taskinstance.py:1380} INFO - Executing <Task(PythonOperator): preprocess_data> on 2023-11-03 14:00:01.038102+00:00
+[2023-11-03T14:00:09.446+0000] {standard_task_runner.py:57} INFO - Started process 3585 to run task
+[2023-11-03T14:00:09.450+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'movies-etl-dag', 'preprocess_data', 'manual__2023-11-03T14:00:01.038102+00:00', '--job-id', '166', '--raw', '--subdir', 'DAGS_FOLDER/movie_pg_es.py', '--cfg-path', '/tmp/tmpbzcijcs5']
+[2023-11-03T14:00:09.453+0000] {standard_task_runner.py:85} INFO - Job 166: Subtask preprocess_data
+[2023-11-03T14:00:09.619+0000] {task_command.py:415} INFO - Running <TaskInstance: movies-etl-dag.preprocess_data manual__2023-11-03T14:00:01.038102+00:00 [running]> on host e468bf2dfd15
+[2023-11-03T14:00:09.951+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='movies-etl-dag' AIRFLOW_CTX_TASK_ID='preprocess_data' AIRFLOW_CTX_EXECUTION_DATE='2023-11-03T14:00:01.038102+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2023-11-03T14:00:01.038102+00:00'
+[2023-11-03T14:00:10.016+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/movie_pg_es.py", line 116, in preprocess_data
+    transformed_films_data.append(FilmWorkES(
+  File "/home/airflow/.local/lib/python3.8/site-packages/pydantic/main.py", line 165, in __init__
+    __pydantic_self__.__pydantic_validator__.validate_python(data, self_instance=__pydantic_self__)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for FilmWorkES
+rating
+  Field required [type=missing, input_value={'id': '192b3fc9-97e2-426...'name': 'David Spade'}]}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.3/v/missing
+[2023-11-03T14:00:10.073+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=movies-etl-dag, task_id=preprocess_data, execution_date=20231103T140001, start_date=20231103T140009, end_date=20231103T140010
+[2023-11-03T14:00:10.087+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 166 for task preprocess_data (1 validation error for FilmWorkES
+rating
+  Field required [type=missing, input_value={'id': '192b3fc9-97e2-426...'name': 'David Spade'}]}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.3/v/missing; 3585)
+[2023-11-03T14:00:10.103+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2023-11-03T14:00:10.182+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

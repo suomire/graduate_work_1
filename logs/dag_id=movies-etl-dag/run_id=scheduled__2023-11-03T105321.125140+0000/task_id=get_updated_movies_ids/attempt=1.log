@@ -1,0 +1,25 @@
+[2023-11-03T10:54:24.449+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: movies-etl-dag.get_updated_movies_ids scheduled__2023-11-03T10:53:21.125140+00:00 [queued]>
+[2023-11-03T10:54:24.458+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: movies-etl-dag.get_updated_movies_ids scheduled__2023-11-03T10:53:21.125140+00:00 [queued]>
+[2023-11-03T10:54:24.459+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2023-11-03T10:54:24.474+0000] {taskinstance.py:1380} INFO - Executing <Task(PythonOperator): get_updated_movies_ids> on 2023-11-03 10:53:21.125140+00:00
+[2023-11-03T10:54:24.479+0000] {standard_task_runner.py:57} INFO - Started process 412 to run task
+[2023-11-03T10:54:24.482+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'movies-etl-dag', 'get_updated_movies_ids', 'scheduled__2023-11-03T10:53:21.125140+00:00', '--job-id', '29', '--raw', '--subdir', 'DAGS_FOLDER/movie_pg_es.py', '--cfg-path', '/tmp/tmp1mp8tcbf']
+[2023-11-03T10:54:24.485+0000] {standard_task_runner.py:85} INFO - Job 29: Subtask get_updated_movies_ids
+[2023-11-03T10:54:24.648+0000] {task_command.py:415} INFO - Running <TaskInstance: movies-etl-dag.get_updated_movies_ids scheduled__2023-11-03T10:53:21.125140+00:00 [running]> on host e468bf2dfd15
+[2023-11-03T10:54:24.876+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='movies-etl-dag' AIRFLOW_CTX_TASK_ID='get_updated_movies_ids' AIRFLOW_CTX_EXECUTION_DATE='2023-11-03T10:53:21.125140+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2023-11-03T10:53:21.125140+00:00'
+[2023-11-03T10:54:24.923+0000] {base.py:73} INFO - Using connection ID 'movies_db_id' for task execution.
+[2023-11-03T10:54:25.014+0000] {movie_pg_es.py:53} INFO - Movies updated state: 0001-01-01 00:00:00
+[2023-11-03T10:54:25.016+0000] {movie_pg_es.py:56} INFO - [('3d825f60-9fff-4dfe-b294-1a45fa1e115d', datetime.datetime(2021, 6, 16, 20, 14, 9, 221855, tzinfo=datetime.timezone.utc)), ('0312ed51-8833-413f-bff5-0e139c11264a', datetime.datetime(2021, 6, 16, 20, 14, 9, 221958, tzinfo=datetime.timezone.utc))]
+[2023-11-03T10:54:25.017+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/movie_pg_es.py", line 58, in get_updated_movies_ids
+    ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(items[-1]["updated_at"]))
+TypeError: tuple indices must be integers or slices, not str
+[2023-11-03T10:54:25.065+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=movies-etl-dag, task_id=get_updated_movies_ids, execution_date=20231103T105321, start_date=20231103T105424, end_date=20231103T105425
+[2023-11-03T10:54:25.080+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 29 for task get_updated_movies_ids (tuple indices must be integers or slices, not str; 412)
+[2023-11-03T10:54:25.095+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2023-11-03T10:54:25.169+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

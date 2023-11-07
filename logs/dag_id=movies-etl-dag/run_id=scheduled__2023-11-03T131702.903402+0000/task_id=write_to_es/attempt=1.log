@@ -1,0 +1,71 @@
+[2023-11-03T13:18:10.868+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: movies-etl-dag.write_to_es scheduled__2023-11-03T13:17:02.903402+00:00 [queued]>
+[2023-11-03T13:18:10.881+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: movies-etl-dag.write_to_es scheduled__2023-11-03T13:17:02.903402+00:00 [queued]>
+[2023-11-03T13:18:10.881+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2023-11-03T13:18:10.900+0000] {taskinstance.py:1380} INFO - Executing <Task(PythonOperator): write_to_es> on 2023-11-03 13:17:02.903402+00:00
+[2023-11-03T13:18:10.908+0000] {standard_task_runner.py:57} INFO - Started process 2719 to run task
+[2023-11-03T13:18:10.912+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'movies-etl-dag', 'write_to_es', 'scheduled__2023-11-03T13:17:02.903402+00:00', '--job-id', '87', '--raw', '--subdir', 'DAGS_FOLDER/movie_pg_es.py', '--cfg-path', '/tmp/tmpdj9q2kas']
+[2023-11-03T13:18:10.915+0000] {standard_task_runner.py:85} INFO - Job 87: Subtask write_to_es
+[2023-11-03T13:18:11.090+0000] {task_command.py:415} INFO - Running <TaskInstance: movies-etl-dag.write_to_es scheduled__2023-11-03T13:17:02.903402+00:00 [running]> on host e468bf2dfd15
+[2023-11-03T13:18:11.348+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='movies-etl-dag' AIRFLOW_CTX_TASK_ID='write_to_es' AIRFLOW_CTX_EXECUTION_DATE='2023-11-03T13:17:02.903402+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2023-11-03T13:17:02.903402+00:00'
+[2023-11-03T13:18:11.416+0000] {movie_pg_es.py:114} INFO - [FilmWorkES(id='1b7d7c64-8be8-47db-8924-23029a9878a9', title='Star Trek IV: The Voyage Home', type='movie', rating=7.3, created_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 222973, tzinfo=TzInfo(UTC)), updated_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 222989, tzinfo=TzInfo(UTC)), genre='Adventure, Comedy, Sci-Fi', actors_names=['Leonard Nimoy', 'James Doohan', 'DeForest Kelley', 'William Shatner'], actors_ids=['5a3d0299-2df2-4070-9fda-65ff4dfa863c', '807ce9c3-6294-485c-803a-1975066f239f', '836bb95b-6db8-4418-a110-f41663b1c025', '9758b894-57d7-465d-b657-c5803dd5b7f7'], writers_names=['Harve Bennett', 'Leonard Nimoy', 'Gene Roddenberry', 'Steve Meerson', 'Peter Krikes', 'Nicholas Meyer'], writers_ids=['58411ec0-c40a-43da-95e3-0adc74b7e7f6', '5a3d0299-2df2-4070-9fda-65ff4dfa863c', '6960e2ca-889f-41f5-b728-1e7313e54d6c', '74b4cc18-9fb3-4796-b718-2d0fa4f84fb4', '7caea3e2-194c-4876-be8f-60b1a4743d21', 'c883c2c6-d7a4-4001-8084-e2851904e91a'], directors_names=['Leonard Nimoy'], directors_ids=['5a3d0299-2df2-4070-9fda-65ff4dfa863c'], description='The most acclaimed Star Trek adventure of all time with an important message. It is the 23rd century, and a mysterious alien probe is threatening Earth by evaporating the oceans and destroying the atmosphere. In their frantic attempt to save mankind, Admiral Kirk and his crew must time travel back to 1986 San Francisco where they find a world of punk, pizza and exact-change buses that are as alien to them as anything they have ever encountered in the far-off reaches of the galaxy. William Shatner and Leonard Nimoy return as Kirk and Spock, along with the entire Star Trek crew.'), FilmWorkES(id='98167b6e-8d41-4378-9fc3-ee998677e6cb', title='Star Trek: Generations', type='movie', rating=6.6, created_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 223028, tzinfo=TzInfo(UTC)), updated_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 223044, tzinfo=TzInfo(UTC)), genre='Action, Adventure, Mystery, Sci-Fi, Thriller', actors_names=['Patrick Stewart', 'Jonathan Frakes', 'Brent Spiner', 'LeVar Burton'], actors_ids=['57a471b1-09dc-48fd-ba8a-1211015a0110', '5bddea2c-8609-499a-a444-77e0142743c0', '972c86a5-16f4-432b-b9b3-54965291ddb0', 'fc9f27d2-aaee-46e6-b263-40ec8d2dd355'], writers_names=['Ronald D. Moore', 'Gene Roddenberry', 'Rick Berman', 'Brannon Braga'], writers_ids=['382da5d5-135b-4b02-a069-ba9beb5f3786', '6960e2ca-889f-41f5-b728-1e7313e54d6c', '88a99b4d-4d06-4754-b06c-93217cf53244', 'd67d5cb8-4541-4b20-89be-4100ba95e615'], directors_names=['David Carson'], directors_ids=['09ea7635-dfee-4722-ad40-23c93ef03644'], description="In the late 23rd century, the gala maiden voyage of the newly-christened Enterprise-B boasts such luminaries as Pavel Chekov, Montgomery Scott and the legendary Captain James T. Kirk as guests. But her maiden voyage turns into a disaster as the unprepared starship is forced to rescue two transport ships from a mysterious energy ribbon. The Enterprise manages to save a handful of the ships' passengers and barely succeeds out intact... but at the cost of Captain Kirk's life. 78 years later, Captain Jean-Luc Picard and the Enterprise-D crew find themselves at odds with renegade scientist Dr. Tolian Soran... who is destroying entire star systems. Only one man can help Picard stop Soran's scheme... and he has been dead for 78 years.")]
+[2023-11-03T13:18:11.417+0000] {movie_pg_es.py:115} INFO - Processing 2 movie:
+[2023-11-03T13:18:19.439+0000] {_transport.py:359} INFO - PUT http://elasticsearch:9200/_bulk [status:N/A duration:8.019s]
+[2023-11-03T13:18:19.440+0000] {_node_pool.py:246} WARNING - Node <Urllib3HttpNode(http://elasticsearch:9200)> has failed for 1 times in a row, putting on 1 second timeout
+[2023-11-03T13:18:19.440+0000] {_transport.py:396} WARNING - Retrying request after failure (attempt 0 of 3)
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_transport.py", line 329, in perform_request
+    meta, raw_data = node.perform_request(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_node/_http_urllib3.py", line 199, in perform_request
+    raise err from None
+elastic_transport.ConnectionError: Connection error caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x7f295099c370>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution)
+[2023-11-03T13:18:27.453+0000] {_transport.py:359} INFO - PUT http://elasticsearch:9200/_bulk [status:N/A duration:8.003s]
+[2023-11-03T13:18:27.454+0000] {_node_pool.py:246} WARNING - Node <Urllib3HttpNode(http://elasticsearch:9200)> has failed for 2 times in a row, putting on 2 second timeout
+[2023-11-03T13:18:27.454+0000] {_transport.py:396} WARNING - Retrying request after failure (attempt 1 of 3)
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_transport.py", line 329, in perform_request
+    meta, raw_data = node.perform_request(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_node/_http_urllib3.py", line 199, in perform_request
+    raise err from None
+elastic_transport.ConnectionError: Connection error caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x7f295099c610>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution)
+[2023-11-03T13:18:27.455+0000] {_node_pool.py:309} INFO - Resurrected node <Urllib3HttpNode(http://elasticsearch:9200)> (force=False)
+[2023-11-03T13:18:35.459+0000] {_transport.py:359} INFO - PUT http://elasticsearch:9200/_bulk [status:N/A duration:8.003s]
+[2023-11-03T13:18:35.460+0000] {_node_pool.py:246} WARNING - Node <Urllib3HttpNode(http://elasticsearch:9200)> has failed for 3 times in a row, putting on 4 second timeout
+[2023-11-03T13:18:35.461+0000] {_transport.py:396} WARNING - Retrying request after failure (attempt 2 of 3)
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_transport.py", line 329, in perform_request
+    meta, raw_data = node.perform_request(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_node/_http_urllib3.py", line 199, in perform_request
+    raise err from None
+elastic_transport.ConnectionError: Connection error caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x7f295099c6d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution)
+[2023-11-03T13:18:35.462+0000] {_node_pool.py:309} INFO - Resurrected node <Urllib3HttpNode(http://elasticsearch:9200)> (force=False)
+[2023-11-03T13:18:43.467+0000] {_transport.py:359} INFO - PUT http://elasticsearch:9200/_bulk [status:N/A duration:8.004s]
+[2023-11-03T13:18:43.468+0000] {_node_pool.py:246} WARNING - Node <Urllib3HttpNode(http://elasticsearch:9200)> has failed for 4 times in a row, putting on 8 second timeout
+[2023-11-03T13:18:43.468+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/movie_pg_es.py", line 122, in write_to_es
+    helpers.bulk(elastic, actions)
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 521, in bulk
+    for ok, item in streaming_bulk(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 436, in streaming_bulk
+    for data, (ok, info) in zip(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 339, in _process_bulk_chunk
+    resp = client.bulk(*args, operations=bulk_actions, **kwargs)  # type: ignore[arg-type]
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/_sync/client/utils.py", line 414, in wrapped
+    return api(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/_sync/client/__init__.py", line 704, in bulk
+    return self.perform_request(  # type: ignore[return-value]
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/_sync/client/_base.py", line 285, in perform_request
+    meta, resp_body = self.transport.perform_request(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_transport.py", line 329, in perform_request
+    meta, raw_data = node.perform_request(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elastic_transport/_node/_http_urllib3.py", line 199, in perform_request
+    raise err from None
+elastic_transport.ConnectionError: Connection error caused by: ConnectionError(Connection error caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x7f295099c370>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution))
+[2023-11-03T13:18:43.547+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=movies-etl-dag, task_id=write_to_es, execution_date=20231103T131702, start_date=20231103T131810, end_date=20231103T131843
+[2023-11-03T13:18:43.572+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 87 for task write_to_es (Connection error caused by: ConnectionError(Connection error caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x7f295099c370>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution)); 2719)
+[2023-11-03T13:18:43.617+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2023-11-03T13:18:43.692+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

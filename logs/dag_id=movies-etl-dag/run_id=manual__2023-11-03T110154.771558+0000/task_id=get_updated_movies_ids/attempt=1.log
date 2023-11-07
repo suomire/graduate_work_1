@@ -1,0 +1,16 @@
+[2023-11-03T11:01:58.604+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: movies-etl-dag.get_updated_movies_ids manual__2023-11-03T11:01:54.771558+00:00 [queued]>
+[2023-11-03T11:01:58.618+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: movies-etl-dag.get_updated_movies_ids manual__2023-11-03T11:01:54.771558+00:00 [queued]>
+[2023-11-03T11:01:58.618+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2023-11-03T11:01:58.636+0000] {taskinstance.py:1380} INFO - Executing <Task(PythonOperator): get_updated_movies_ids> on 2023-11-03 11:01:54.771558+00:00
+[2023-11-03T11:01:58.643+0000] {standard_task_runner.py:57} INFO - Started process 574 to run task
+[2023-11-03T11:01:58.647+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'movies-etl-dag', 'get_updated_movies_ids', 'manual__2023-11-03T11:01:54.771558+00:00', '--job-id', '42', '--raw', '--subdir', 'DAGS_FOLDER/movie_pg_es.py', '--cfg-path', '/tmp/tmpoxls0j2r']
+[2023-11-03T11:01:58.651+0000] {standard_task_runner.py:85} INFO - Job 42: Subtask get_updated_movies_ids
+[2023-11-03T11:01:58.892+0000] {task_command.py:415} INFO - Running <TaskInstance: movies-etl-dag.get_updated_movies_ids manual__2023-11-03T11:01:54.771558+00:00 [running]> on host e468bf2dfd15
+[2023-11-03T11:01:59.281+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='movies-etl-dag' AIRFLOW_CTX_TASK_ID='get_updated_movies_ids' AIRFLOW_CTX_EXECUTION_DATE='2023-11-03T11:01:54.771558+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2023-11-03T11:01:54.771558+00:00'
+[2023-11-03T11:01:59.335+0000] {base.py:73} INFO - Using connection ID 'movies_db_id' for task execution.
+[2023-11-03T11:01:59.447+0000] {movie_pg_es.py:53} INFO - Movies updated state: 2021-06-16 20:14:09.222232+00:00
+[2023-11-03T11:01:59.450+0000] {movie_pg_es.py:56} INFO - [['c4c5e3de-c0c9-4091-b242-ceb331004dfd', datetime.datetime(2021, 6, 16, 20, 14, 9, 222232, tzinfo=datetime.timezone.utc)], ['4af6c9c9-0be0-4864-b1e9-7f87dd59ee1f', datetime.datetime(2021, 6, 16, 20, 14, 9, 222292, tzinfo=datetime.timezone.utc)]]
+[2023-11-03T11:01:59.519+0000] {python.py:194} INFO - Done. Returned value was: ('4af6c9c9-0be0-4864-b1e9-7f87dd59ee1f', 'c4c5e3de-c0c9-4091-b242-ceb331004dfd')
+[2023-11-03T11:01:59.642+0000] {taskinstance.py:1398} INFO - Marking task as SUCCESS. dag_id=movies-etl-dag, task_id=get_updated_movies_ids, execution_date=20231103T110154, start_date=20231103T110158, end_date=20231103T110159
+[2023-11-03T11:01:59.702+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2023-11-03T11:01:59.782+0000] {taskinstance.py:2776} INFO - 1 downstream tasks scheduled from follow-on schedule check

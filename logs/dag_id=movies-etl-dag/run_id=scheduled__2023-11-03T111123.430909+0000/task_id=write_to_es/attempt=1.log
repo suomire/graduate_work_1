@@ -1,0 +1,25 @@
+[2023-11-03T11:12:41.585+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: movies-etl-dag.write_to_es scheduled__2023-11-03T11:11:23.430909+00:00 [queued]>
+[2023-11-03T11:12:41.595+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: movies-etl-dag.write_to_es scheduled__2023-11-03T11:11:23.430909+00:00 [queued]>
+[2023-11-03T11:12:41.596+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2023-11-03T11:12:41.621+0000] {taskinstance.py:1380} INFO - Executing <Task(PythonOperator): write_to_es> on 2023-11-03 11:11:23.430909+00:00
+[2023-11-03T11:12:41.627+0000] {standard_task_runner.py:57} INFO - Started process 820 to run task
+[2023-11-03T11:12:41.631+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'movies-etl-dag', 'write_to_es', 'scheduled__2023-11-03T11:11:23.430909+00:00', '--job-id', '71', '--raw', '--subdir', 'DAGS_FOLDER/movie_pg_es.py', '--cfg-path', '/tmp/tmp2xwhzd3p']
+[2023-11-03T11:12:41.634+0000] {standard_task_runner.py:85} INFO - Job 71: Subtask write_to_es
+[2023-11-03T11:12:41.900+0000] {task_command.py:415} INFO - Running <TaskInstance: movies-etl-dag.write_to_es scheduled__2023-11-03T11:11:23.430909+00:00 [running]> on host e468bf2dfd15
+[2023-11-03T11:12:42.259+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='movies-etl-dag' AIRFLOW_CTX_TASK_ID='write_to_es' AIRFLOW_CTX_EXECUTION_DATE='2023-11-03T11:11:23.430909+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2023-11-03T11:11:23.430909+00:00'
+[2023-11-03T11:12:42.397+0000] {movie_pg_es.py:113} INFO - Processing 2 movie:
+[2023-11-03T11:12:42.398+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/movie_pg_es.py", line 114, in write_to_es
+    actions = [
+  File "/opt/airflow/dags/movie_pg_es.py", line 116, in <listcomp>
+    _index=MOVIES_ES_INDEX, _id=film_data.id, _source=film_data.dict()
+AttributeError: 'str' object has no attribute 'id'
+[2023-11-03T11:12:42.475+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=movies-etl-dag, task_id=write_to_es, execution_date=20231103T111123, start_date=20231103T111241, end_date=20231103T111242
+[2023-11-03T11:12:42.501+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 71 for task write_to_es ('str' object has no attribute 'id'; 820)
+[2023-11-03T11:12:42.526+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2023-11-03T11:12:42.622+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

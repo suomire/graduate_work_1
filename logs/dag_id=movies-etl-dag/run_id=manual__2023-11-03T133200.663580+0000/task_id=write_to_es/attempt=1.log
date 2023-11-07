@@ -1,0 +1,46 @@
+[2023-11-03T13:32:08.962+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: movies-etl-dag.write_to_es manual__2023-11-03T13:32:00.663580+00:00 [queued]>
+[2023-11-03T13:32:08.971+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: movies-etl-dag.write_to_es manual__2023-11-03T13:32:00.663580+00:00 [queued]>
+[2023-11-03T13:32:08.972+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2023-11-03T13:32:08.984+0000] {taskinstance.py:1380} INFO - Executing <Task(PythonOperator): write_to_es> on 2023-11-03 13:32:00.663580+00:00
+[2023-11-03T13:32:08.990+0000] {standard_task_runner.py:57} INFO - Started process 3041 to run task
+[2023-11-03T13:32:08.993+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'movies-etl-dag', 'write_to_es', 'manual__2023-11-03T13:32:00.663580+00:00', '--job-id', '124', '--raw', '--subdir', 'DAGS_FOLDER/movie_pg_es.py', '--cfg-path', '/tmp/tmp66trxpig']
+[2023-11-03T13:32:08.996+0000] {standard_task_runner.py:85} INFO - Job 124: Subtask write_to_es
+[2023-11-03T13:32:09.193+0000] {task_command.py:415} INFO - Running <TaskInstance: movies-etl-dag.write_to_es manual__2023-11-03T13:32:00.663580+00:00 [running]> on host e468bf2dfd15
+[2023-11-03T13:32:09.442+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='movies-etl-dag' AIRFLOW_CTX_TASK_ID='write_to_es' AIRFLOW_CTX_EXECUTION_DATE='2023-11-03T13:32:00.663580+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2023-11-03T13:32:00.663580+00:00'
+[2023-11-03T13:32:09.515+0000] {movie_pg_es.py:118} INFO - [FilmWorkES(id='a144d250-6667-47e4-94bd-0ee59c0dc05f', title='Star Trek: Deep Space Nine', type='movie', rating=7.9, created_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 223554, tzinfo=TzInfo(UTC)), updated_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 223571, tzinfo=TzInfo(UTC)), genre='Action, Adventure, Drama, Sci-Fi', actors_names=['Avery Brooks', 'Cirroc Lofton', 'Rene Auberjonois', 'Alexander Siddig'], actors_ids=['511b9add-1f0c-4b5f-be96-14dc569ffb06', '7970a901-e0ee-4a71-a2ea-9c964dcffc29', '81b3b0d6-81d9-45aa-a90b-614978cf7b29', 'd3377a4d-eee3-4fba-adca-fb60170afbeb'], writers_names=['Rick Berman', 'Michael Piller'], writers_ids=['88a99b4d-4d06-4754-b06c-93217cf53244', 'd67afc96-b9ed-4c91-9507-ffc2018c58d7'], directors_names=[], directors_ids=[], description="The stable wormhole discovered by the Deep Space Nine crew is known to the Bajoran people as the Celestial Temple of their Prophets. Sisko, as discoverer of the wormhole and its inhabitants, is therefore the Emissary of Bajoran prophesy. The wormhole's other end is in the Gamma Quadrant, halfway around the galaxy from Bajor. That section of space is dominated by the malevolent Dominion. The Dominion is led by the Changelings, the race of shapeshifters to which Odo belongs. As of the beginning of the sixth season, Cardassia has joined the Dominion, and together they are waging war on the Federation and their Klingon allies. The war is quickly becoming the most costly war ever for the Federation, and the Deep Space Nine crew must fight to protect their way of life."), FilmWorkES(id='b503ced6-fff1-493a-ad41-73449b55ffee', title='Star Wars: The Clone Wars', type='movie', rating=8.2, created_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 223504, tzinfo=TzInfo(UTC)), updated_at=datetime.datetime(2021, 6, 16, 20, 14, 9, 223520, tzinfo=TzInfo(UTC)), genre='Action, Adventure, Animation, Drama, Fantasy, Sci-Fi', actors_names=['Tom Kane', 'James Arnold Taylor', 'Matt Lanter', 'Dee Bradley Baker'], actors_ids=['5237aac5-f652-4aa5-9061-55bb007cd7be', '8746ff78-577b-4bef-a7f7-1db05a102def', '976fdf00-4f46-429b-af5b-2ddf2ff1b7c5', 'a3468637-c3c3-442c-892e-1625385c49c6'], writers_names=['George Lucas'], writers_ids=['a5a8f573-3cee-4ccc-8a2b-91cb9f55250a'], directors_names=[], directors_ids=[], description='Jedi Knights lead the Grand Army of the Republic against the droid army of the Separatists.')]
+[2023-11-03T13:32:09.516+0000] {movie_pg_es.py:119} INFO - Processing 2 movie:
+[2023-11-03T13:32:09.516+0000] {movie_pg_es.py:122} INFO - movies
+[2023-11-03T13:32:09.516+0000] {movie_pg_es.py:123} INFO - a144d250-6667-47e4-94bd-0ee59c0dc05f
+[2023-11-03T13:32:09.517+0000] {movie_pg_es.py:122} INFO - movies
+[2023-11-03T13:32:09.517+0000] {movie_pg_es.py:123} INFO - b503ced6-fff1-493a-ad41-73449b55ffee
+[2023-11-03T13:32:09.517+0000] {movie_pg_es.py:135} INFO - [{}, {}]
+[2023-11-03T13:32:09.524+0000] {_transport.py:336} INFO - PUT http://movies_es_db:9200/_bulk [status:400 duration:0.005s]
+[2023-11-03T13:32:09.524+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/movie_pg_es.py", line 136, in write_to_es
+    helpers.bulk(es_conn, actions)
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 521, in bulk
+    for ok, item in streaming_bulk(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 436, in streaming_bulk
+    for data, (ok, info) in zip(
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 355, in _process_bulk_chunk
+    yield from gen
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 291, in _process_bulk_chunk_error
+    raise error
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/helpers/actions.py", line 339, in _process_bulk_chunk
+    resp = client.bulk(*args, operations=bulk_actions, **kwargs)  # type: ignore[arg-type]
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/_sync/client/utils.py", line 414, in wrapped
+    return api(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/_sync/client/__init__.py", line 704, in bulk
+    return self.perform_request(  # type: ignore[return-value]
+  File "/home/airflow/.local/lib/python3.8/site-packages/elasticsearch/_sync/client/_base.py", line 320, in perform_request
+    raise HTTP_EXCEPTIONS.get(meta.status, ApiError)(
+elasticsearch.BadRequestError: BadRequestError(400, 'action_request_validation_exception', 'Validation Failed: 1: index is missing;2: index is missing;')
+[2023-11-03T13:32:09.575+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=movies-etl-dag, task_id=write_to_es, execution_date=20231103T133200, start_date=20231103T133208, end_date=20231103T133209
+[2023-11-03T13:32:09.589+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 124 for task write_to_es (BadRequestError(400, 'action_request_validation_exception', 'Validation Failed: 1: index is missing;2: index is missing;'); 3041)
+[2023-11-03T13:32:09.606+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2023-11-03T13:32:09.670+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check
