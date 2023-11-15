@@ -4,6 +4,7 @@ import json
 import logging
 
 from airflow.models.taskinstance import TaskInstance
+from airflow.hooks.base_hook import BaseHook
 from airflow.providers.elasticsearch.hooks.elasticsearch import ElasticsearchPythonHook
 from elasticsearch import Elasticsearch, helpers
 
@@ -19,11 +20,12 @@ def get_index_schema(fields: List[str]) -> Dict:
 
 
 def es_create_index(ti: TaskInstance, **context):
-    es_hook = ElasticsearchPythonHook(hosts=context["params"]["out_db_conn"]["hosts"])
+    conn = BaseHook.get_connection(context["params"]["out_db_id"])
+    es_hook = ElasticsearchPythonHook(hosts=[f"http://{conn.host}:{conn.port}"])
     es_conn = es_hook.get_conn
     logging.info(context["params"]["fields"])
     logging.info(get_index_schema(context["params"]["fields"]))
-    response = es_conn.indices.create(index=context["params"]["out_db_conn"]["index_name"], body=get_index_schema(context["params"]["fields"]), ignore=400)
+    response = es_conn.indices.create(index=context["params"]["out_db_params"]["index_name"], body=get_index_schema(context["params"]["fields"]), ignore=400)
     if 'acknowledged' in response:
         if response['acknowledged']:
             logging.info('Индекс создан: {}'.format(response['index']))
@@ -56,7 +58,8 @@ def es_preprocess(ti: TaskInstance, **context):
 
 
 def es_write(ti: TaskInstance, **context):
-    es_hook = ElasticsearchPythonHook(hosts=context["params"]["out_db_conn"]["hosts"])
+    conn = BaseHook.get_connection(context["params"]["out_db_id"])
+    es_hook = ElasticsearchPythonHook(hosts=[f"http://{conn.host}:{conn.port}"])
     es_conn = es_hook.get_conn
 
     films_data = ti.xcom_pull(task_ids="es_preprocess")
@@ -69,7 +72,7 @@ def es_write(ti: TaskInstance, **context):
     logging.info("Processing %x movie:", len(films_data))
     actions = [
         {
-            "_index": context["params"]["out_db_conn"]["index_name"],
+            "_index": context["params"]["out_db_params"]["index_name"],
             "_id": film_data["id"],
             "_source": film_data,
         }

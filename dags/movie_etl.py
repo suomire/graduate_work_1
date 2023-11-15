@@ -14,7 +14,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.models.param import Param
 
-from settings import DBFileds
+from settings import DBFileds, MOVIES_UPDATED_STATE_KEY
 from db.pg import pg_get_films_data, pg_get_updated_movies_ids
 from db.es import es_create_index, es_preprocess, es_write
 
@@ -42,29 +42,18 @@ def in_db_branch_func(**context):
 
 @task.branch(task_id="out_db_branch_task")
 def out_db_branch_func(**context):
-    # if context["params"]["out_db_id"] is not None:
-    
     # https://www.restack.io/docs/airflow-faq-authoring-and-scheduling-connections-05
     conn = BaseHook.get_connection(context["params"]["out_db_id"])
-    logging.info(conn)
     if conn.conn_type == "postgres":
-        return ["task_es_preprocess", "es_create_index", "task_es_write"]
-    if conn.conn_type == "elasticsearch":
         return 
+    if conn.conn_type == "elasticsearch":
+        return ["es_preprocess", "es_create_index", "es_write"]
     if conn.conn_type == "sqlite":
         return 
-    
-    # else:
-    #     conn_type = context["params"]["out_db_conn"]["db_type"]
-    #     if conn_type == "ElasticSearch":
-    #         return ["es_preprocess", "es_write"]
-    #     elif conn_type == "":
-    #         return
             
 
 def in_param_validator(ti: TaskInstance, **context):
     conn = BaseHook.get_connection(context["params"]["in_db_id"])
-    logging.info(conn)
     if conn.conn_type == "postgres":
         if context["params"]["id_db_params"].get("schema") is None:
             raise AirflowException("You must specify 'schema' in 'id_db_params' for Postgres")
@@ -75,14 +64,24 @@ def in_param_validator(ti: TaskInstance, **context):
     else:
         raise AirflowException("Unknown input db connection type %s", conn.conn_type)
     
-    if context["params"]["out_db_id"] is None and len(context["params"]["out_db_conn"]) == 0:
-        raise AirflowException("'out_db_id' or 'out_db_conn' must be not None")
-    
-    # if context["params"]["out_db_conn"].get("db_type") == "ElasticSearch":
-    #     if context["params"]["out_db_conn"].get("hosts") is None:
-    #         raise AirflowException("You must specify 'hosts' for ElasticSearch")
-    #     if context["params"]["out_db_conn"].get("index_name") is None:
-    #         raise AirflowException("You must specify 'index_name' for ElasticSearch")
+    conn = BaseHook.get_connection(context["params"]["out_db_id"])
+    if conn.conn_type == "postgres":
+        if context["params"]["out_db_params"].get("schema") is None:
+            raise AirflowException("You must specify 'schema' in 'out_db_params' for Postgres")
+    elif conn.conn_type == "elasticsearch":
+        if context["params"]["out_db_params"].get("index_name") is None:
+            raise AirflowException("You must specify 'index_name' in 'out_db_params' for ElasticSearch") 
+    elif conn.conn_type == "sqlite":
+        return 
+    else:
+        raise AirflowException("Unknown input db connection type %s", conn.conn_type)
+
+
+# def state_update(ti: TaskInstance, **context):
+#     start_task = ti.xcom_pull(task_ids="in_db_branch_task")[0]
+#     films_data = ti.xcom_pull(task_ids=start_task)
+#     if films_data:
+#         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(films_data[-1]["updated_at"]))
 
 
 
@@ -97,20 +96,14 @@ with DAG(
     params={
         "chunk_size": Param(11, type="integer", minimum=10),
         "in_db_id": Param(
-            "movies_db_id", type="string", enum=["movies_pg_db", "movies_es_db"]
+            "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db"]
         ),
         "id_db_params": Param({"schema": "content"}, type=["object", "null"]),
         "fields": Param(["film_id", "title"], type="array", examples=DBFileds.keys()),
-        # ["film_id"]
-        # "out_db_id": Param(
-        #     None, type=["string", "null"]
-        #     # , enum=[None, "movies_db_id",]
-        # ),
         "out_db_id": Param(
             "movies_es_db", type=["string", "null"], enum=["movies_es_db", "movies_pg_db",]
         ),
-        # "out_db_conn": Param({"db_type": "ElasticSearch"}, type=["object", "null"]),
-        "out_db_params": Param({"schema": "content"}, type=["object", "null"]),
+        "out_db_params": Param({"index_name": "content"}, type=["object", "null"]),
     }
 ) as dag:
 
@@ -158,6 +151,12 @@ with DAG(
         python_callable=es_write,
         provide_context=True,
     )
+
+    # task_update_state = PythonOperator(
+    #     task_id="state_update", 
+    #     python_callable=state_update, 
+    #     provide_context=True,
+    # )
 
     final = DummyOperator(task_id="final")
 
