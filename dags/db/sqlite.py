@@ -70,8 +70,6 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     if len(film_ids) == 0:
         logging.info("No records need to be updated")
         return
-    film_ids_tuple = tuple(film_ids)
-    logging.info(f'film_ids_tuple= {film_ids_tuple}')
 
     query = f"""
         SELECT {fields_query}
@@ -80,7 +78,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
         LEFT JOIN {SQLiteDBTables.person.value} p ON p.id = pfw.person_id
         LEFT JOIN {SQLiteDBTables.film_genre.value} gfw ON gfw.film_work_id = fw.id
         LEFT JOIN {SQLiteDBTables.genre.value} g ON g.id = gfw.genre_id
-        WHERE fw.id IN {film_ids_tuple}
+        WHERE fw.id IN {tuple(film_ids)}
         GROUP BY fw.id;
         """
     logging.info(f'query= {query}')
@@ -93,7 +91,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     msg = f"sqlite_tuples_list = {sqlite_tuples_list}, {type(sqlite_tuples_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
 
-    sqlite_dict_list = [dict(zip(fields_query, tuple)) for tuple in sqlite_tuples_list]
+    sqlite_dict_list = [dict(zip(context["params"]["fields"], tuple)) for tuple in sqlite_tuples_list]
     sqlite_con.close()
     msg = f"sqlite_dict_list = {sqlite_dict_list}, {type(sqlite_dict_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
