@@ -8,7 +8,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 from airflow.providers.sqlite.hooks.sqlite import SqliteHook
 from psycopg2.extras import RealDictCursor
 
-from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY, FILEDS2SQL
+from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 
 def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
@@ -48,7 +48,21 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
 
 def sqlite_get_films_data(ti: TaskInstance, **context):
     """Сбор агрегированных данных по фильмам"""
-    logging.info(context["params"]["fields"])
+    FILEDS2SQL = {
+        DBFileds.film_id.name: "fw.id",
+        DBFileds.title.name: "fw.title",
+        DBFileds.description.name: "fw.description",
+        DBFileds.rating.name: "fw.rating",
+        DBFileds.film_type.name: "fw.type",
+        DBFileds.film_created_at.name: "fw.created_at",
+        DBFileds.film_updated_at.name: "fw.updated_at",
+        DBFileds.actors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'actor')",
+        DBFileds.writers.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'writer')",
+        DBFileds.directors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'director')",
+        DBFileds.genre.name: "STRING_AGG(DISTINCT g.name, ', ')",
+    }
+
+    logging.info(f'context["params"]["fields"]= {context["params"]["fields"]}')
     fields_query = ", ".join([FILEDS2SQL[field] for field in context["params"]["fields"]])
 
     query = f"""

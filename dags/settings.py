@@ -112,3 +112,4 @@ MOVIE_FIELDS = {
     DBFileds.film_created_at.name: {"type": "keyword"},
     DBFileds.film_updated_at.name: {"type": "keyword"},
 }
+
