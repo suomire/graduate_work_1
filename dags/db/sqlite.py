@@ -36,7 +36,9 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     sqlite_cur = sqlite_con.cursor()
     sqlite_cur.execute(query, (updated_state_sqlite,))
     sqlite_tuples_list = sqlite_cur.fetchall()
+    logging.info(f'sqlite_tuples_list= {sqlite_tuples_list}')
     sqlite_dict_list = [dict(zip(['id', 'updated_at'], tuple)) for tuple in sqlite_tuples_list]
+    logging.info(f'sqlite_dict_list= {sqlite_dict_list}')
     sqlite_con.close()
     msg = f"sqlite_items = {str(sqlite_dict_list)}, {str(type(sqlite_dict_list))}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
@@ -90,8 +92,8 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     sqlite_tuples_list = sqlite_cur.fetchall()
     msg = f"sqlite_tuples_list = {sqlite_tuples_list}, {type(sqlite_tuples_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
-
-    sqlite_dict_list = [dict(zip(context["params"]["fields"], tuple)) for tuple in sqlite_tuples_list]
+    fields = [i.replace('film_', '') for i in context["params"]["fields"]]
+    sqlite_dict_list = [dict(zip(fields, tuple)) for tuple in sqlite_tuples_list]
     sqlite_con.close()
     msg = f"sqlite_dict_list = {sqlite_dict_list}, {type(sqlite_dict_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
