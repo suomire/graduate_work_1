@@ -77,14 +77,17 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
         """
 
     film_ids = ti.xcom_pull(task_ids="sqlite_get_updated_movies_ids")
+    logging.info(f'film_ids= {film_ids}')
     if len(film_ids) == 0:
         logging.info("No records need to be updated")
         return
+    film_ids_tuple = tuple(film_ids)
+    logging.info(f'film_ids_tuple= {film_ids_tuple}')
 
     sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
     sqlite_con = sqlite_hook.get_conn()
     sqlite_cur = sqlite_con.cursor()
-    sqlite_cur.execute(query, (tuple(film_ids),))
+    sqlite_cur.execute(query, (film_ids_tuple,))
     sqlite_tuples_list = sqlite_cur.fetchall()
     msg = f"sqlite_tuples_list = {sqlite_tuples_list}, {type(sqlite_tuples_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
