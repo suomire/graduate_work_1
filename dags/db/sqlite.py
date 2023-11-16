@@ -88,7 +88,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
     sqlite_con = sqlite_hook.get_conn()
     sqlite_cur = sqlite_con.cursor()
-    sqlite_cur.execute(query, (film_ids_tuple,))
+    sqlite_cur.execute(query)
     sqlite_tuples_list = sqlite_cur.fetchall()
     msg = f"sqlite_tuples_list = {sqlite_tuples_list}, {type(sqlite_tuples_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
