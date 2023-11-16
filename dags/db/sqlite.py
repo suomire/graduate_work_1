@@ -65,17 +65,6 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     logging.info(f'context["params"]["fields"]= {context["params"]["fields"]}')
     fields_query = ", ".join([FILEDS2SQL[field] for field in context["params"]["fields"]])
 
-    query = f"""
-        SELECT {fields_query}
-        FROM {SQLiteDBTables.film.value} fw
-        LEFT JOIN {SQLiteDBTables.film_person.value} pfw ON pfw.film_work_id = fw.id
-        LEFT JOIN {SQLiteDBTables.person.value} p ON p.id = pfw.person_id
-        LEFT JOIN {SQLiteDBTables.film_genre.value} gfw ON gfw.film_work_id = fw.id
-        LEFT JOIN {SQLiteDBTables.genre.value} g ON g.id = gfw.genre_id
-        WHERE fw.id IN ?
-        GROUP BY fw.id;
-        """
-
     film_ids = ti.xcom_pull(task_ids="sqlite_get_updated_movies_ids")
     logging.info(f'film_ids= {film_ids}')
     if len(film_ids) == 0:
@@ -83,6 +72,18 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
         return
     film_ids_tuple = tuple(film_ids)
     logging.info(f'film_ids_tuple= {film_ids_tuple}')
+
+    query = f"""
+        SELECT {fields_query}
+        FROM {SQLiteDBTables.film.value} fw
+        LEFT JOIN {SQLiteDBTables.film_person.value} pfw ON pfw.film_work_id = fw.id
+        LEFT JOIN {SQLiteDBTables.person.value} p ON p.id = pfw.person_id
+        LEFT JOIN {SQLiteDBTables.film_genre.value} gfw ON gfw.film_work_id = fw.id
+        LEFT JOIN {SQLiteDBTables.genre.value} g ON g.id = gfw.genre_id
+        WHERE fw.id IN {film_ids_tuple}
+        GROUP BY fw.id;
+        """
+    logging.info(f'query= {query}')
 
     sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
     sqlite_con = sqlite_hook.get_conn()
