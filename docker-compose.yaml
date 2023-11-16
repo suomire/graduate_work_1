@@ -40,7 +40,7 @@ services:
     volumes:
       # - ./postgres/init_db.sql:/docker-entrypoint-initdb.d/db.sql
       - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
-      - ./movie-db-pg-volume:/var/lib/postgresql/data
+      - movie-db-pg-volume:/var/lib/postgresql/data
     ports:
       - ${MOVIES_DB_PG_PORT}:5432
 
@@ -51,7 +51,7 @@ services:
       - "xpack.security.enabled=false"
       - "ES_JAVA_OPTS=-Xms200m -Xmx200m"
     volumes:
-      - ./movie-db-es-volume:/usr/share/elasticsearch/data
+      - movie-db-es-volume:/usr/share/elasticsearch/data
     ports:
       - ${MOVIES_DB_ES_HOST}:9200
 
@@ -62,7 +62,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - ./postgres-airflow-volume:/var/lib/postgresql/data
+      - postgres-airflow-volume:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "airflow" ]
       interval: 10s
@@ -261,5 +261,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-# volumes:
-#   movie-db-volume:
+volumes:
+  movie-db-pg-volume:
+  movie-db-es-volume:
+  postgres-airflow-volume:
