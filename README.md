@@ -1,6 +1,6 @@
 # Проектная работа: диплом
 
-## Запуск проект
+## Запуск проекта
 sudo docker compose up -d --build
 
 ## Airflow
