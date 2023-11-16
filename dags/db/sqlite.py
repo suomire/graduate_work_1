@@ -13,6 +13,7 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     """Сбор обновленных записей в таблице с фильмами"""
+    logging.info('sqlite_get_updated_movies_ids; context= ', **context)
 
     query = f"""
         SELECT id, updated_at
@@ -30,7 +31,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     msg = f"updated_state_sqlite = {updated_state_sqlite}, {type(updated_state_sqlite)}"
     logging.info(msg)
 
-    sqlite_hook = SqliteHook(sqlite_conn_id='sqlite_movies_database')
+    sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
     msg = f"sqlite_hook = {str(sqlite_hook)}, {str(type(sqlite_hook))}"
     logging.info(msg)
     sqlite_con = sqlite_hook.get_conn()
