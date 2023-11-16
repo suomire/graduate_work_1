@@ -7,6 +7,7 @@ import airflow
 from airflow import DAG
 from airflow.decorators import dag, task
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base_hook import BaseHook
 from airflow.exceptions import AirflowException
@@ -147,7 +148,8 @@ with DAG(
         provide_context=True,
     )
 
-    cross = DummyOperator(task_id="cross")
+    #to avoid task skipping "none_failed_min_one_success"
+    cross = EmptyOperator(task_id="cross", trigger_rule='none_failed_min_one_success')
 
     out_branch_op = out_db_branch_func()
 
