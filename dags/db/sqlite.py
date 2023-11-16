@@ -93,7 +93,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     msg = f"sqlite_tuples_list = {sqlite_tuples_list}, {type(sqlite_tuples_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
 
-    sqlite_dict_list = [dict(zip(['id', 'updated_at'], tuple)) for tuple in sqlite_tuples_list]
+    sqlite_dict_list = [dict(zip(fields_query, tuple)) for tuple in sqlite_tuples_list]
     sqlite_con.close()
     msg = f"sqlite_dict_list = {sqlite_dict_list}, {type(sqlite_dict_list)}"
     logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
