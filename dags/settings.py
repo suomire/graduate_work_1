@@ -34,6 +34,12 @@ class PGDBTables(str, ExtendedEnum):
     film_genre = "genre_film_work"
     film_person = "person_film_work"
 
+class SQLiteDBTables(str, ExtendedEnum):
+    film = "film_work"
+    genre = "genre"
+    person = "person"
+    film_genre = "genre_film_work"
+    film_person = "person_film_work"
 
 MOVIES_BASE = {
     "settings": {
