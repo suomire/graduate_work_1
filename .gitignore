@@ -64,3 +64,4 @@ movie-db-pg-volume/
 postgres-airflow-volume/
 
 todo
+.idea/
