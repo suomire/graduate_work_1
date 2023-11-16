@@ -191,7 +191,7 @@ init >> task_validate_params >> in_branch_op
 
 in_branch_op >> task_pg_get_movies_ids >> task_pg_get_films_data >> out_branch_op
 
-in_branch_op >> task_sqlite_get_movies_ids >> task_sqlite_get_films_data >> out_branch_op
+# in_branch_op >> task_sqlite_get_movies_ids >> task_sqlite_get_films_data >> out_branch_op
 
 out_branch_op >> task_es_preprocess >> task_es_create_index >> task_es_write >> final
 
