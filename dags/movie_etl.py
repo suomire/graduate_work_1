@@ -148,7 +148,8 @@ with DAG(
         provide_context=True,
     )
 
-    #to avoid task skipping "none_failed_min_one_success"
+    #to avoid task skipping trigger_rule="none_failed_min_one_success"
+    #https://marclamberti.com/blog/airflow-branchpythonoperator/
     cross = EmptyOperator(task_id="cross", trigger_rule='none_failed_min_one_success')
 
     out_branch_op = out_db_branch_func()
@@ -189,7 +190,10 @@ with DAG(
     #     provide_context=True,
     # )
 
-    final = DummyOperator(task_id="final")
+    #to avoid task skipping trigger_rule="none_failed_min_one_success"
+    #https://marclamberti.com/blog/airflow-branchpythonoperator/
+    final = EmptyOperator(task_id="final", trigger_rule='none_failed_min_one_success')
+
 
 init >> task_validate_params >> in_branch_op
 
@@ -197,7 +201,7 @@ in_branch_op >> task_pg_get_movies_ids >> task_pg_get_films_data >> cross
 
 in_branch_op >> task_sqlite_get_movies_ids >> task_sqlite_get_films_data >> cross
 
-cross >> out_branch_op
+cross >> out_branch_op #cross - соединитель веток
 
 out_branch_op >> task_es_preprocess >> task_es_create_index >> task_es_write >> final
 
