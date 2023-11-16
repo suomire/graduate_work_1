@@ -6,7 +6,13 @@ from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.postgres_hook import PostgresHook
 from psycopg2.extras import RealDictCursor
 
-from settings import DBFileds, PGDBTables, MOVIES_UPDATED_STATE_KEY
+from settings import (
+    DBFileds,
+    PGDBTables,
+    MOVIES_UPDATED_STATE_KEY,
+    MOVIES_UPDATED_STATE_KEY_TMP,
+    DT_FMT_PG,
+)
 
 
 def pg_get_updated_movies_ids(ti: TaskInstance, **context):
@@ -32,7 +38,9 @@ def pg_get_updated_movies_ids(ti: TaskInstance, **context):
     items = cursor.fetchall()
     logging.info(items)
     if items:
-        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(items[-1]["updated_at"]))
+        ti.xcom_push(
+            key=MOVIES_UPDATED_STATE_KEY_TMP, value=str(items[-1]["updated_at"])
+        )
     return set([x["id"] for x in items])
 
 
@@ -45,17 +53,19 @@ def pg_get_films_data(ti: TaskInstance, **context):
         DBFileds.description.name: "fw.description",
         DBFileds.rating.name: "fw.rating",
         DBFileds.film_type.name: "fw.type",
-        DBFileds.film_created_at.name: "fw.created_at",
-        DBFileds.film_updated_at.name: "fw.updated_at",
-        DBFileds.actors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'actor')",
-        DBFileds.writers.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'writer')",
-        DBFileds.directors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'director')",
-        DBFileds.genre.name: "STRING_AGG(DISTINCT g.name, ', ')",
-        }
-    
-    
+        DBFileds.film_created_at.name: "TO_CHAR(fw.created_at, %(dt_fmt)s) AS created_at",
+        DBFileds.film_updated_at.name: "TO_CHAR(fw.updated_at, %(dt_fmt)s) AS updated_at",
+        DBFileds.actors.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'actor') AS actors",
+        DBFileds.writers.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'writer') AS writers",
+        DBFileds.directors.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'director') AS directors",
+        DBFileds.genre.name: "JSON_AGG(DISTINCT jsonb_build_object('id', g.id::text, 'name', g.name)) AS genre",
+    }
+
     logging.info(context["params"]["fields"])
-    fields_query = ", ".join([FILEDS2SQL[field] for field in context["params"]["fields"]])
+    fields_query = ", ".join(
+        [FILEDS2SQL[field] for field in context["params"]["fields"]]
+    )
+    logging.info(fields_query)
 
     query = f"""
         SELECT {fields_query}
@@ -64,11 +74,12 @@ def pg_get_films_data(ti: TaskInstance, **context):
         LEFT JOIN {context["params"]["id_db_params"]["schema"]}.{PGDBTables.person.value} p ON p.id = pfw.person_id
         LEFT JOIN {context["params"]["id_db_params"]["schema"]}.{PGDBTables.film_genre.value} gfw ON gfw.film_work_id = fw.id
         LEFT JOIN {context["params"]["id_db_params"]["schema"]}.{PGDBTables.genre.value} g ON g.id = gfw.genre_id
-        WHERE fw.id IN %s
+        WHERE fw.id IN %(id)s
         GROUP BY fw.id;
         """
 
     film_ids = ti.xcom_pull(task_ids="pg_get_updated_movies_ids")
+    logging.info(film_ids)
     if len(film_ids) == 0:
         logging.info("No records need to be updated")
         return
@@ -77,7 +88,14 @@ def pg_get_films_data(ti: TaskInstance, **context):
     pg_conn = pg_hook.get_conn()
     cursor = pg_conn.cursor(cursor_factory=RealDictCursor)
 
-    cursor.execute(query, (tuple(film_ids),))
+    cursor.execute(
+        query,
+        {
+            "id": tuple(film_ids),
+            "dt_fmt": DT_FMT_PG,
+        },
+    )
     items = cursor.fetchall()
     logging.info(items)
     return json.dumps(items, indent=4)
+

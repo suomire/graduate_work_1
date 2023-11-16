@@ -2,6 +2,9 @@ from enum import Enum
 
 
 MOVIES_UPDATED_STATE_KEY = "movies_state"
+MOVIES_UPDATED_STATE_KEY_TMP = "movies_state_tmp"
+DT_FMT = "%Y-$m-%d %H:%M:%S"
+DT_FMT_PG = "YYYY-MM-DD HH24:MI:SS"
 
 class ExtendedEnum(Enum):
     @classmethod
@@ -84,7 +87,7 @@ MOVIE_FIELDS = {
         "fields": {"raw": {"type": "keyword"}},
     },
     DBFileds.description.name: {"type": "text", "analyzer": "ru_en"},
-    DBFileds.directors.name: {"type": "text", "analyzer": "ru_en"},
+    # DBFileds.directors.name: {"type": "text", "analyzer": "ru_en"},
     # "actors_names": {"type": "text", "analyzer": "ru_en"},
     # "writers_names": {"type": "text", "analyzer": "ru_en"},
     DBFileds.actors.name: {
@@ -92,7 +95,7 @@ MOVIE_FIELDS = {
         "dynamic": "strict",
         "properties": {
             "id": {"type": "keyword"},
-            "name": {"type": "text", "analyzer": "ru_en"},
+            "full_name": {"type": "text", "analyzer": "ru_en"},
         },
     },
     DBFileds.writers.name: {
@@ -100,7 +103,15 @@ MOVIE_FIELDS = {
         "dynamic": "strict",
         "properties": {
             "id": {"type": "keyword"},
-            "name": {"type": "text", "analyzer": "ru_en"},
+            "full_name": {"type": "text", "analyzer": "ru_en"},
+        },
+    },
+    DBFileds.directors.name: {
+        "type": "nested",
+        "dynamic": "strict",
+        "properties": {
+            "id": {"type": "keyword"},
+            "full_name": {"type": "text", "analyzer": "ru_en"},
         },
     },
     DBFileds.film_created_at.name: {"type": "keyword"},

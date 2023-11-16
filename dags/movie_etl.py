@@ -77,11 +77,14 @@ def in_param_validator(ti: TaskInstance, **context):
         raise AirflowException("Unknown input db connection type %s", conn.conn_type)
 
 
-# def state_update(ti: TaskInstance, **context):
-#     start_task = ti.xcom_pull(task_ids="in_db_branch_task")[0]
-#     films_data = ti.xcom_pull(task_ids=start_task)
-#     if films_data:
-#         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(films_data[-1]["updated_at"]))
+def state_update(ti: TaskInstance, **context):
+    # start_task = ti.xcom_pull(task_ids="in_db_branch_task")[0]
+    # films_data = ti.xcom_pull(task_ids=start_task)
+    state = ti.xcom_pull(
+        key=MOVIES_UPDATED_STATE_KEY, include_prior_dates=True
+    )
+    if state:
+        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=state)
 
 
 
@@ -152,11 +155,11 @@ with DAG(
         provide_context=True,
     )
 
-    # task_update_state = PythonOperator(
-    #     task_id="state_update", 
-    #     python_callable=state_update, 
-    #     provide_context=True,
-    # )
+    task_update_state = PythonOperator(
+        task_id="state_update", 
+        python_callable=state_update, 
+        provide_context=True,
+    )
 
     final = DummyOperator(task_id="final")
 

@@ -13,7 +13,9 @@ from utils import transform
 
 
 def get_index_schema(fields: List[str]) -> Dict:
-    filed_properties = {DBFileds[k].value : v for k,v in MOVIE_FIELDS.items() if k in fields}
+    filed_properties = {
+        DBFileds[k].value: v for k, v in MOVIE_FIELDS.items() if k in fields
+    }
     schema = copy.deepcopy(MOVIES_BASE)
     schema["mappings"]["properties"] = filed_properties
     return schema
@@ -25,12 +27,16 @@ def es_create_index(ti: TaskInstance, **context):
     es_conn = es_hook.get_conn
     logging.info(context["params"]["fields"])
     logging.info(get_index_schema(context["params"]["fields"]))
-    response = es_conn.indices.create(index=context["params"]["out_db_params"]["index_name"], body=get_index_schema(context["params"]["fields"]), ignore=400)
-    if 'acknowledged' in response:
-        if response['acknowledged']:
-            logging.info('Индекс создан: {}'.format(response['index']))
-    elif 'error' in response:
-        logging.error('Ошибка: {}'.format(response['error']['root_cause']))
+    response = es_conn.indices.create(
+        index=context["params"]["out_db_params"]["index_name"],
+        body=get_index_schema(context["params"]["fields"]),
+        ignore=400,
+    )
+    if "acknowledged" in response:
+        if response["acknowledged"]:
+            logging.info("Индекс создан: {}".format(response["index"]))
+    elif "error" in response:
+        logging.error("Ошибка: {}".format(response["error"]["root_cause"]))
     logging.info(response)
 
 
@@ -40,18 +46,14 @@ def es_preprocess(ti: TaskInstance, **context):
     if not films_data:
         logging.info("No records need to be updated")
         return
-    
+
     films_data = json.loads(films_data)
     transformed_films_data = []
     for film_data in films_data:
         transformed_film_data = {}
         for k, v in film_data.items():
-            if k == "genre":
-                v = v.split(', ')
-            if k == "actors":
-                v = transform.get_person_json(person_ids=film_data["actors_ids"], person_names=film_data["actors_names"])
-            if k == "writers":
-                v = transform.get_person_json(person_ids=film_data["writers_ids"], person_names=film_data["writers_names"])
+            if k == DBFileds.genre.value:
+                v = transform.get_genres(v)
             transformed_film_data[k] = v
         transformed_films_data.append(transformed_film_data)
     return json.dumps(transformed_films_data, indent=4)
