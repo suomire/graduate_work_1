@@ -13,11 +13,11 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     """Сбор обновленных записей в таблице с фильмами"""
-    logging.info(f'sqlite_get_updated_movies_ids; context= , {context}')
+    logging.info(f'sqlite_get_updated_movies_ids; context= , {context["params"]}')
 
     query = f"""
         SELECT id, updated_at
-        FROM {context["params"]["id_db_params"]["schema"]}.{SQLiteDBTables.film.value}
+        FROM {SQLiteDBTables.film.value}
         WHERE updated_at >= ?
         ORDER BY updated_at
         LIMIT {context["params"]["chunk_size"]}
