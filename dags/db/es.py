@@ -68,7 +68,9 @@ def es_write(ti: TaskInstance, **context):
         return
 
     films_data = json.loads(films_data)
-    logging.info(films_data)
+    logging.info(f'{films_data=}')
+    logging.info(f'{len(films_data)=}')
+    logging.info(f'{type(films_data)=}')
     logging.info("Processing %x movie:", len(films_data))
     actions = [
         {
