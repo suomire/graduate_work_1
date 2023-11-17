@@ -69,19 +69,21 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
                 );""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
-        except sqlite3.OperationalError as err:
+            conn.commit()
+        except Exception as err:
             logging.error(f'<<ERROR>> {err}')
         try:
             cursor.execute("""INSERT INTO person (name, age) VALUES ('Tom', 37);""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
-        except sqlite3.OperationalError as err:
+            conn.commit()
+        except Exception as err:
             logging.error(f'<<ERROR>> {err}')
         try:
             cursor.execute("""select * from person;""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
-        except sqlite3.OperationalError as err:
+        except Exception as err:
             logging.error(f'<<ERROR>> {err}')
 
         sqlite_dict_list = cursor.fetchall()
