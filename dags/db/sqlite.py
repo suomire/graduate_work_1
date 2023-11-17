@@ -1,3 +1,5 @@
+import sys
+import pathlib
 from datetime import datetime
 import time
 import json
@@ -17,7 +19,9 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 @contextmanager
 def conn_context(db_name: str):
-    conn = sqlite3.connect(db_name)
+    db_path = str(pathlib.Path(sys.argv[0]).parent) + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
+    logging.info(f"{db_path=}")
+    conn = sqlite3.connect(db_path)
     # По-умолчанию SQLite возвращает строки в виде кортежа значений.
     # row_factory указывает, что данные должны быть в формате «ключ-значение»
     conn.row_factory = sqlite3.Row
