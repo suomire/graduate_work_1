@@ -19,7 +19,10 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 @contextmanager
 def conn_context(db_name: str):
-    db_path = str(pathlib.Path(sys.argv[0]).parent) + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
+    path = pathlib.Path(sys.argv[0]).parent
+    logging.info(f"{path=}")
+    logging.info(f"{str(path)=}")
+    db_path = str(path) + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
     logging.info(f"{db_path=}")
     conn = sqlite3.connect(db_path)
     # conn = sqlite3.connect(db_name)
