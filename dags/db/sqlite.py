@@ -28,7 +28,7 @@ def conn_context(db_name: str):
     # conn = sqlite3.connect(db_name)
     # По-умолчанию SQLite возвращает строки в виде кортежа значений.
     # row_factory указывает, что данные должны быть в формате «ключ-значение»
-    # conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row
     logging.info(f"{conn=}")
     yield conn
     conn.close()
@@ -61,13 +61,18 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
         cursor = conn.cursor()
         # cursor.execute(""".table""")
         try:
-            cursor.execute("""select * from film_work;""")
+            cursor.execute("""CREATE TABLE person
+                (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    age INTEGER
+                );""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
         except sqlite3.OperationalError as err:
             logging.error(f'<<ERROR>> {err}')
         try:
-            cursor.execute("""select * from genre;""")
+            cursor.execute("""INSERT INTO person (name, age) VALUES ('Tom', 37);""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
         except sqlite3.OperationalError as err:
@@ -79,8 +84,8 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
         except sqlite3.OperationalError as err:
             logging.error(f'<<ERROR>> {err}')
 
-        # sqlite_dict_list = cursor.fetchall()
-        # logging.info(f'{sqlite_dict_list=}')
+        sqlite_dict_list = cursor.fetchall()
+        logging.info(f'{sqlite_dict_list=}')
 
 
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
