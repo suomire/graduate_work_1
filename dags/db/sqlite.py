@@ -21,7 +21,8 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 def conn_context(db_name: str):
     db_path = str(pathlib.Path(sys.argv[0]).parent) + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
     logging.info(f"{db_path=}")
-    conn = sqlite3.connect(db_path)
+    # conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_name)
     # По-умолчанию SQLite возвращает строки в виде кортежа значений.
     # row_factory указывает, что данные должны быть в формате «ключ-значение»
     conn.row_factory = sqlite3.Row
