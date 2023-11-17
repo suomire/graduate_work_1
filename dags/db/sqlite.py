@@ -61,19 +61,19 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
         cursor = conn.cursor()
         # cursor.execute(""".table""")
         try:
-            cursor.execute("""select * from film_work""")
+            cursor.execute("""select * from film_work;""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
         except sqlite3.OperationalError as err:
             logging.error(f'<<ERROR>> {err}')
         try:
-            cursor.execute("""select * from genre""")
+            cursor.execute("""select * from genre;""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
         except sqlite3.OperationalError as err:
             logging.error(f'<<ERROR>> {err}')
         try:
-            cursor.execute("""select * from person""")
+            cursor.execute("""select * from person;""")
             sqlite_dict_list = cursor.fetchall()
             logging.info(f'{sqlite_dict_list=}')
         except sqlite3.OperationalError as err:
