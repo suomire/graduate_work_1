@@ -138,6 +138,7 @@ def sqlite_write(ti: TaskInstance, **context):
     films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
     logging.info(f'JSON {films_data=}')
     films_data = json.loads(films_data)
+    films_data = json.loads(films_data)
     logging.info(f'{type(films_data)=}, {films_data=}')
     if not films_data:
         logging.info("No records need to be updated")
