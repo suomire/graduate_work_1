@@ -21,6 +21,7 @@ def conn_context(db_path: str):
     # По-умолчанию SQLite возвращает строки в виде кортежа значений.
     # row_factory указывает, что данные должны быть в формате «ключ-значение»
     conn.row_factory = sqlite3.Row
+    logging.info(f"{conn.__dict__=}")
     yield conn
     conn.close()
 
@@ -45,12 +46,13 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     msg = f"updated_state_sqlite = {updated_state_sqlite}, {type(updated_state_sqlite)}"
     logging.info(msg)
 
-    con_details = BaseHook.get_connection(context["params"]["in_db_id"])
-    logging.info(f"Host: {con_details.schema}")
+    db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
+    logging.info(f"{db_name=}")
 
-    with conn_context(con_details.schema) as conn:
+    with conn_context(db_name) as conn:
         curs = conn.cursor()
-        curs.execute(query)
+        # curs.execute(query)
+        curs.execute("""select * from film_work""")
         data = curs.fetchall()
         logging.info(f'{data=}')
 
