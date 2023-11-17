@@ -83,11 +83,12 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
         try:
             cursor.execute("""select * from person;""")
             data = cursor.fetchall()
-            logging.info(f'{dict(data[0])=}')
+            data_dict = [dict(i) for i in data]
+            logging.info(f'{data_dict=}')
         except Exception as err:
             logging.error(f'<<ERROR>> {err}')
 
-        sqlite_dict_list = data
+        sqlite_dict_list = data_dict
         logging.info(f'{sqlite_dict_list=}')
 
 
