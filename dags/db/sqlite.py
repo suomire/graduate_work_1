@@ -157,8 +157,8 @@ def sqlite_write(ti: TaskInstance, **context):
                         file_path TEXT DEFAULT 'FILE_PATH',
                         rating FLOAT DEFAULT 1,
                         type TEXT DEFAULT 'TYPE',
-                        created_at timestamp with time zone DEFAULT CURRENT_DATE,
-                        updated_at timestamp with time zone DEFAULT CURRENT_DATE
+                        created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                        updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
                     );
     """
 
