@@ -6,7 +6,7 @@ import json
 import logging
 import sqlite3
 
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base_hook import BaseHook
@@ -51,7 +51,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     logging.info(f"{db_name=}")
 
     with conn_context(db_name) as conn:
-        with conn.cursor() as cursor:
+        with closing(conn.cursor()) as cursor:
             try:
                 cursor.execute(query, (updated_state_sqlite,))
                 # cursor.execute("""select * from person;""")
@@ -108,7 +108,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     logging.info(f"{db_name=}")
 
     with conn_context(db_name) as conn:
-        with conn.cursor() as cursor:
+        with closing(conn.cursor()) as cursor:
             try:
                 cursor.execute(query)
                 data = cursor.fetchall()
@@ -173,7 +173,7 @@ def sqlite_write(ti: TaskInstance, **context):
     logging.info(f'{insertion_query}')
 
     with conn_context(db_name) as conn:
-        with conn.cursor() as cursor:
+        with closing(conn.cursor()) as cursor:
 
             try:
                 cursor.execute("""SELECT sql FROM sqlite_master WHERE name='film_work';""")
