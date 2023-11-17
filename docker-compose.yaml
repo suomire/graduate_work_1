@@ -26,6 +26,8 @@ x-airflow-common:
     - ./db_out.sqlite:/db_out.sqlite #база получатель данных
     - ./db_in.sqlite:/bin/db_in.sqlite #база источник данных
     - ./db_out.sqlite:/bin/db_out.sqlite #база получатель данных
+    - ./db_in.sqlite:/opt/airflow/db_in.sqlite #база источник данных
+    - ./db_out.sqlite:/opt/airflow/db_out.sqlite #база получатель данных
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
