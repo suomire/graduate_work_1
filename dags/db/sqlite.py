@@ -163,7 +163,7 @@ def sqlite_write(ti: TaskInstance, **context):
     """
 
     insertion_query = f"""
-            INSERT INTO {SQLiteDBTables.film.value} 
+            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} 
             VALUES ({'?'+',?'*(len(films_data[0])-1)});
     """
     logging.error(f'{insertion_query}')
@@ -171,6 +171,23 @@ def sqlite_write(ti: TaskInstance, **context):
 
     with conn_context(db_name) as conn:
         cursor = conn.cursor()
+
+        try:
+            cursor.execute("""SELECT sql FROM sqlite_master WHERE name='film_work';""")
+            schema=cursor.fetchall()
+            logging.info(f'{schema}')
+        except Exception as err:
+            logging.error(f'<<DROP TABLE ERROR>> {err}')
+
+
+        try:
+            cursor.execute("""DROP TABLE film_work;""")
+            conn.commit()
+            logging.info('SUCCESS DROP TABLE')
+        except Exception as err:
+            logging.error(f'<<DROP TABLE ERROR>> {err}')
+
+
         try:
             cursor.execute(creation_query)
             conn.commit()
@@ -184,7 +201,7 @@ def sqlite_write(ti: TaskInstance, **context):
             conn.commit()
             logging.info('SUCCESS INSERT')
         except Exception as err:
-            logging.error(f'<<SELECT ERROR>> {err}')
+            logging.error(f'<<INSERT ERROR>> {err}')
 
 
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["out_db_id"])
