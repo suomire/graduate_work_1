@@ -2,6 +2,9 @@ from datetime import datetime
 import time
 import json
 import logging
+import sqlite3
+
+from contextlib import contextmanager
 
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.postgres_hook import PostgresHook
@@ -9,6 +12,15 @@ from airflow.providers.sqlite.hooks.sqlite import SqliteHook
 from psycopg2.extras import RealDictCursor
 
 from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
+
+
+@contextmanager
+def conn_context(sqlite_hook: SqliteHook):
+    conn = sqlite_hook.get_conn()
+    # По-умолчанию SQLite возвращает строки в виде кортежа значений. Эта строка указывает, что данные должны быть в формате «ключ-значение»
+    conn.row_factory = sqlite3.Row
+    yield conn
+    conn.close()
 
 
 def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
@@ -32,7 +44,8 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     logging.info(msg)
 
     sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
-    sqlite_con = sqlite_hook.get_conn()
+    sqlite_con = conn_context(sqlite_hook)
+    # sqlite_con = sqlite_hook.get_conn()
     sqlite_cur = sqlite_con.cursor()
     sqlite_cur.execute(query, (updated_state_sqlite,))
     sqlite_tuples_list = sqlite_cur.fetchall()
@@ -103,8 +116,35 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
 
 def sqlite_preprocess(ti: TaskInstance, **context):
     """Трансформация данных"""
-    logging.info(f'def sqlite_preprocess= {ti.xcom_pull(task_ids="sqlite_get_films_data")}, context= {context["params"]}')
+    prev_task = ti.xcom_pull(task_ids="in_db_branch_task")[-1]
+    films_data = ti.xcom_pull(task_ids=prev_task)
+    logging.info(f'{films_data=}')
+    if not films_data:
+        logging.info("No records need to be updated")
+        return
+
+    transformed_films_data = films_data
+    logging.info(f'{transformed_films_data=}')
+
+    return json.dumps(transformed_films_data, indent=4)
+
 
 def sqlite_write(ti: TaskInstance, **context):
     """Запись данных"""
-    logging.info(f'sqlite_write= {ti.xcom_pull(task_ids="sqlite_preprocess")}, context= {context["params"]}')
+    # films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
+    # logging.info(f'{films_data=}')
+    # if not films_data:
+    #     logging.info("No records need to be updated")
+    #     return
+    #
+    # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["out_db_id"])
+    # sqlite_con = sqlite_hook.get_conn()
+    # sqlite_cur = sqlite_con.cursor()
+    # sqlite_cur.execute("""
+    #     CREATE TABLE IF NOT EXISTS contacts (
+    #     contact_id INTEGER PRIMARY KEY,
+    #     first_name TEXT NOT NULL,
+    #     last_name TEXT NOT NULL,
+    #     email TEXT NOT NULL UNIQUE,
+    #     phone TEXT NOT NULL UNIQUE
+    # );""")
