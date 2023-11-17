@@ -60,9 +60,27 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     with conn_context(db_name) as conn:
         cursor = conn.cursor()
         # cursor.execute(""".table""")
-        cursor.execute("""select * from film_work""")
-        sqlite_dict_list = cursor.fetchall()
-        logging.info(f'{sqlite_dict_list=}')
+        try:
+            cursor.execute("""select * from film_work""")
+            sqlite_dict_list = cursor.fetchall()
+            logging.info(f'{sqlite_dict_list=}')
+        except sqlite3.OperationalError as err:
+            logging.error(f'<<ERROR>> {err}')
+        try:
+            cursor.execute("""select * from genre""")
+            sqlite_dict_list = cursor.fetchall()
+            logging.info(f'{sqlite_dict_list=}')
+        except sqlite3.OperationalError as err:
+            logging.error(f'<<ERROR>> {err}')
+        try:
+            cursor.execute("""select * from person""")
+            sqlite_dict_list = cursor.fetchall()
+            logging.info(f'{sqlite_dict_list=}')
+        except sqlite3.OperationalError as err:
+            logging.error(f'<<ERROR>> {err}')
+
+        # sqlite_dict_list = cursor.fetchall()
+        # logging.info(f'{sqlite_dict_list=}')
 
 
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
