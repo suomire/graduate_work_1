@@ -52,6 +52,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     msg = f"updated_state_sqlite = {updated_state_sqlite}, {type(updated_state_sqlite)}"
     logging.info(msg)
 
+    #имя файла базы данных из Admin-Connections-Schema
     db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
     logging.info(f"{db_name=}")
 
@@ -108,20 +109,21 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
         """
     logging.info(f'query= {query}')
 
-    sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
-    sqlite_con = sqlite_hook.get_conn()
-    sqlite_cur = sqlite_con.cursor()
-    sqlite_cur.execute(query)
-    sqlite_tuples_list = sqlite_cur.fetchall()
-    msg = f"sqlite_tuples_list = {sqlite_tuples_list}, {type(sqlite_tuples_list)}"
-    logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
-    fields = [i.replace('film_', '') for i in context["params"]["fields"]]
-    sqlite_dict_list = [dict(zip(fields, tuple)) for tuple in sqlite_tuples_list]
-    sqlite_con.close()
-    msg = f"sqlite_dict_list = {sqlite_dict_list}, {type(sqlite_dict_list)}"
-    logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
+    #имя файла базы данных из Admin-Connections-Schema
+    db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
+    logging.info(f"{db_name=}")
 
-    return json.dumps(sqlite_dict_list, indent=4)
+    with conn_context(db_name) as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query)
+            data = cursor.fetchall()
+            data_dict = [dict(i) for i in data]
+            logging.info(f'{data_dict=}')
+        except Exception as err:
+            logging.error(f'<<SELECT ERROR>> {err}')
+
+    return json.dumps(data_dict, indent=4)
 
 
 def sqlite_preprocess(ti: TaskInstance, **context):
