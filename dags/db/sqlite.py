@@ -16,18 +16,9 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 @contextmanager
 def conn_context(db_name: str):
-    path = pathlib.Path(sys.argv[0]).parent
-    logging.info(f"{path=}")
-    logging.info(f"{str(path)=}")
-    # db_path = str(path) + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
     db_path = '/opt/airflow' + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
-    logging.info(f"{db_path=}")
     conn = sqlite3.connect(db_path)
-    # conn = sqlite3.connect(db_name)
-    # По-умолчанию SQLite возвращает строки в виде кортежа значений.
-    # row_factory указывает, что данные должны быть в формате «ключ-значение»
-    conn.row_factory = sqlite3.Row
-    logging.info(f"{conn=}")
+    conn.row_factory = sqlite3.Row # row_factory - данные в формате «ключ-значение»
     yield conn
     conn.close()
 
@@ -145,7 +136,9 @@ def sqlite_preprocess(ti: TaskInstance, **context):
 def sqlite_write(ti: TaskInstance, **context):
     """Запись данных"""
     films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
-    logging.info(f'{films_data=}')
+    logging.info(f'JSON {films_data=}')
+    films_data = json.loads(films_data)
+    logging.info(f'{type(films_data)=}, {films_data=}')
     if not films_data:
         logging.info("No records need to be updated")
         return
@@ -170,7 +163,7 @@ def sqlite_write(ti: TaskInstance, **context):
 
     insertion_query = f"""
             INSERT INTO {SQLiteDBTables.film.value} 
-            VALUES ('?,'*{len(films_data[0])});
+            VALUES ({'?,'*len(films_data[0])});
     """
     logging.error(f'{insertion_query}')
     logging.info(f'{len(films_data[0])=}')
