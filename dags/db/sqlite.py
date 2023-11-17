@@ -49,7 +49,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
     logging.info(f"{db_name=}")
 
-    with conn_context('db_name') as conn, conn.cursor() as cursor:
+    with conn_context(db_name) as conn, conn.cursor() as cursor:
         cursor.execute(""".table""")
         cursor.execute("""select * from film_work""")
         sqlite_dict_list = cursor.fetchall()
