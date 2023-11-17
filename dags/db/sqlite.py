@@ -51,15 +51,15 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     logging.info(f"{db_name=}")
 
     with conn_context(db_name) as conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute(query, (updated_state_sqlite,))
-            # cursor.execute("""select * from person;""")
-            data = cursor.fetchall()
-            data_dict = [dict(i) for i in data]
-            logging.info(f'{data_dict=}')
-        except Exception as err:
-            logging.error(f'<<SELECT ERROR>> {err}')
+        with conn.cursor() as cursor:
+            try:
+                cursor.execute(query, (updated_state_sqlite,))
+                # cursor.execute("""select * from person;""")
+                data = cursor.fetchall()
+                data_dict = [dict(i) for i in data]
+                logging.info(f'{data_dict=}')
+            except Exception as err:
+                logging.error(f'<<SELECT ERROR>> {err}')
 
     if data_dict:
         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(data_dict[-1]["updated_at"]))
@@ -108,14 +108,14 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
     logging.info(f"{db_name=}")
 
     with conn_context(db_name) as conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute(query)
-            data = cursor.fetchall()
-            data_dict = [dict(i) for i in data]
-            logging.info(f'{data_dict=}')
-        except Exception as err:
-            logging.error(f'<<SELECT ERROR>> {err}')
+        with conn.cursor() as cursor:
+            try:
+                cursor.execute(query)
+                data = cursor.fetchall()
+                data_dict = [dict(i) for i in data]
+                logging.info(f'{data_dict=}')
+            except Exception as err:
+                logging.error(f'<<SELECT ERROR>> {err}')
 
     return json.dumps(data_dict, indent=4)
 
@@ -169,42 +169,43 @@ def sqlite_write(ti: TaskInstance, **context):
             INSERT OR IGNORE INTO {SQLiteDBTables.film.value} 
             VALUES ({'?'+',?'*(len(films_data[0])-1)});
     """
-    logging.error(f'{insertion_query}')
     logging.info(f'{len(films_data[0])=}')
+    logging.info(f'{insertion_query}')
 
     with conn_context(db_name) as conn:
-        cursor = conn.cursor()
+        with conn.cursor() as cursor:
 
-        try:
-            cursor.execute("""SELECT sql FROM sqlite_master WHERE name='film_work';""")
-            schema=cursor.fetchall()
-            logging.info(f'{schema}')
-        except Exception as err:
-            logging.error(f'<<SELECT schema ERROR>> {err}')
-
-
-        try:
-            cursor.execute("""DROP TABLE film_work;""")
-            conn.commit()
-            logging.info('SUCCESS DROP TABLE')
-        except Exception as err:
-            logging.error(f'<<DROP TABLE ERROR>> {err}')
+            try:
+                cursor.execute("""SELECT sql FROM sqlite_master WHERE name='film_work';""")
+                schema=cursor.fetchall()
+                logging.info(f'{schema=}')
+                logging.info(f'{schema[0]=}')
+            except Exception as err:
+                logging.error(f'<<SELECT schema ERROR>> {err}')
 
 
-        try:
-            cursor.execute(creation_query)
-            conn.commit()
-            logging.info('SUCCESS CREATE TABLE')
-        except Exception as err:
-            logging.error(f'<<CREATION TABLE ERROR>> {err}')
+            try:
+                cursor.execute("""DROP TABLE film_work;""")
+                conn.commit()
+                logging.info('SUCCESS DROP TABLE')
+            except Exception as err:
+                logging.error(f'<<DROP TABLE ERROR>> {err}')
 
-        try:
-            cursor.executemany(insertion_query, films_data)
-            logging.info('We have inserted', cursor.rowcount, 'records to the table.')
-            conn.commit()
-            logging.info('SUCCESS INSERT')
-        except Exception as err:
-            logging.error(f'<<INSERT ERROR>> {err}')
+
+            try:
+                cursor.execute(creation_query)
+                conn.commit()
+                logging.info('SUCCESS CREATE TABLE')
+            except Exception as err:
+                logging.error(f'<<CREATION TABLE ERROR>> {err}')
+
+            try:
+                cursor.executemany(insertion_query, films_data)
+                logging.info('We have inserted', cursor.rowcount, 'records to the table.')
+                conn.commit()
+                logging.info('SUCCESS INSERT')
+            except Exception as err:
+                logging.error(f'<<INSERT ERROR>> {err}')
 
 
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["out_db_id"])
