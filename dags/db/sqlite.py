@@ -9,10 +9,7 @@ import sqlite3
 from contextlib import contextmanager
 
 from airflow.models.taskinstance import TaskInstance
-from airflow.hooks.postgres_hook import PostgresHook
-from airflow.providers.sqlite.hooks.sqlite import SqliteHook
 from airflow.hooks.base_hook import BaseHook
-from psycopg2.extras import RealDictCursor
 
 from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
@@ -60,56 +57,18 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
 
     with conn_context(db_name) as conn:
         cursor = conn.cursor()
-        # cursor.execute(""".table""")
-        # try:
-        #     cursor.execute("""CREATE TABLE person
-        #         (
-        #             id INTEGER PRIMARY KEY,
-        #             name TEXT,
-        #             age INTEGER
-        #         );""")
-        #     sqlite_dict_list = cursor.fetchall()
-        #     logging.info(f'{sqlite_dict_list=}')
-        #     conn.commit()
-        # except Exception as err:
-        #     logging.error(f'<<ERROR>> {err}')
-        # try:
-        #     cursor.execute("""INSERT INTO person (name, age) VALUES ('Tom', 37);""")
-        #     sqlite_dict_list = cursor.fetchall()
-        #     logging.info(f'{sqlite_dict_list=}')
-        #     conn.commit()
-        # except Exception as err:
-        #     logging.error(f'<<ERROR>> {err}')
         try:
-            cursor.execute("""select * from person;""")
+            cursor.execute(query, (updated_state_sqlite,))
+            # cursor.execute("""select * from person;""")
             data = cursor.fetchall()
             data_dict = [dict(i) for i in data]
             logging.info(f'{data_dict=}')
         except Exception as err:
-            logging.error(f'<<ERROR>> {err}')
+            logging.error(f'<<SELECT ERROR>> {err}')
 
-        sqlite_dict_list = data_dict
-        logging.info(f'{sqlite_dict_list=}')
-
-
-    # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
-    # sqlite_con = conn_context(sqlite_hook)
-    # # sqlite_con = sqlite_hook.get_conn()
-    # sqlite_cur = sqlite_con.cursor()
-    #
-    #
-    # sqlite_cur.execute(query, (updated_state_sqlite,))
-    # sqlite_tuples_list = sqlite_cur.fetchall()
-    # logging.info(f'sqlite_tuples_list= {sqlite_tuples_list}')
-    # sqlite_dict_list = [dict(zip(['id', 'updated_at'], tuple)) for tuple in sqlite_tuples_list]
-    # logging.info(f'sqlite_dict_list= {sqlite_dict_list}')
-    # sqlite_con.close()
-    # msg = f"sqlite_items = {str(sqlite_dict_list)}, {str(type(sqlite_dict_list))}"
-    # logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
-
-    if sqlite_dict_list:
-        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(sqlite_dict_list[-1]["updated_at"]))
-    return set([x["id"] for x in sqlite_dict_list])
+    if data_dict:
+        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(data_dict[-1]["updated_at"]))
+    return set([x["id"] for x in data_dict])
 
 
 def sqlite_get_films_data(ti: TaskInstance, **context):
