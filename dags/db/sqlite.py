@@ -16,8 +16,8 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 
 @contextmanager
-def conn_context(db_path: str):
-    conn = sqlite3.connect(db_path)
+def conn_context(db_name: str):
+    conn = sqlite3.connect(db_name)
     # По-умолчанию SQLite возвращает строки в виде кортежа значений.
     # row_factory указывает, что данные должны быть в формате «ключ-значение»
     conn.row_factory = sqlite3.Row
@@ -49,12 +49,11 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
     logging.info(f"{db_name=}")
 
-    with conn_context(db_name) as conn:
-        curs = conn.cursor()
-        # curs.execute(query)
-        curs.execute("""select * from film_work""")
-        data = curs.fetchall()
-        logging.info(f'{data=}')
+    with conn_context('db_name') as conn, conn.cursor() as cursor:
+        cursor.execute(""".table""")
+        cursor.execute("""select * from film_work""")
+        sqlite_dict_list = cursor.fetchall()
+        logging.info(f'{sqlite_dict_list=}')
 
 
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
@@ -72,7 +71,6 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     # msg = f"sqlite_items = {str(sqlite_dict_list)}, {str(type(sqlite_dict_list))}"
     # logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
 
-    sqlite_dict_list = data
     if sqlite_dict_list:
         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(sqlite_dict_list[-1]["updated_at"]))
     return set([x["id"] for x in sqlite_dict_list])
