@@ -15,9 +15,10 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 
 @contextmanager
-def conn_context(sqlite_hook: SqliteHook):
-    conn = sqlite_hook.get_conn()
-    # По-умолчанию SQLite возвращает строки в виде кортежа значений. Эта строка указывает, что данные должны быть в формате «ключ-значение»
+def conn_context(db_path: str):
+    conn = sqlite3.connect(db_path)
+    # По-умолчанию SQLite возвращает строки в виде кортежа значений.
+    # row_factory указывает, что данные должны быть в формате «ключ-значение»
     conn.row_factory = sqlite3.Row
     yield conn
     conn.close()
@@ -43,19 +44,29 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     msg = f"updated_state_sqlite = {updated_state_sqlite}, {type(updated_state_sqlite)}"
     logging.info(msg)
 
-    sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
-    sqlite_con = conn_context(sqlite_hook)
-    # sqlite_con = sqlite_hook.get_conn()
-    sqlite_cur = sqlite_con.cursor()
-    sqlite_cur.execute(query, (updated_state_sqlite,))
-    sqlite_tuples_list = sqlite_cur.fetchall()
-    logging.info(f'sqlite_tuples_list= {sqlite_tuples_list}')
-    sqlite_dict_list = [dict(zip(['id', 'updated_at'], tuple)) for tuple in sqlite_tuples_list]
-    logging.info(f'sqlite_dict_list= {sqlite_dict_list}')
-    sqlite_con.close()
-    msg = f"sqlite_items = {str(sqlite_dict_list)}, {str(type(sqlite_dict_list))}"
-    logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
+    with conn_context(context["params"]["id_db_params"]["schema"]) as conn:
+        curs = conn.cursor()
+        curs.execute(query)
+        data = curs.fetchall()
+        logging.info(f'{data=}')
 
+
+    # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
+    # sqlite_con = conn_context(sqlite_hook)
+    # # sqlite_con = sqlite_hook.get_conn()
+    # sqlite_cur = sqlite_con.cursor()
+    #
+    #
+    # sqlite_cur.execute(query, (updated_state_sqlite,))
+    # sqlite_tuples_list = sqlite_cur.fetchall()
+    # logging.info(f'sqlite_tuples_list= {sqlite_tuples_list}')
+    # sqlite_dict_list = [dict(zip(['id', 'updated_at'], tuple)) for tuple in sqlite_tuples_list]
+    # logging.info(f'sqlite_dict_list= {sqlite_dict_list}')
+    # sqlite_con.close()
+    # msg = f"sqlite_items = {str(sqlite_dict_list)}, {str(type(sqlite_dict_list))}"
+    # logging.info(f'SQLITE_CURSOR SUCCESS;= {msg}')
+
+    sqlite_dict_list = data
     if sqlite_dict_list:
         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(sqlite_dict_list[-1]["updated_at"]))
     return set([x["id"] for x in sqlite_dict_list])
