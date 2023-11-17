@@ -151,14 +151,14 @@ def sqlite_write(ti: TaskInstance, **context):
     creation_query = f"""
             CREATE TABLE IF NOT EXISTS {SQLiteDBTables.film.value} (    
                         id TEXT PRIMARY KEY,
-                        title TEXT,
-                        description TEXT,
-                        creation_date DATE,
-                        file_path TEXT,
-                        rating FLOAT,
-                        type TEXT,
-                        created_at timestamp with time zone,
-                        updated_at timestamp with time zone
+                        title TEXT DEFAULT 'TITLE',
+                        description TEXT DEFAULT 'DESCRIPTION',
+                        creation_date DATE DEFAULT CURRENT_DATE,
+                        file_path TEXT DEFAULT 'FILE_PATH',
+                        rating FLOAT DEFAULT 1,
+                        type TEXT DEFAULT 'TYPE',
+                        created_at timestamp with time zone DEFAULT CURRENT_DATE,
+                        updated_at timestamp with time zone DEFAULT CURRENT_DATE
                     );
     """
 
