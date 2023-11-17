@@ -61,25 +61,25 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     with conn_context(db_name) as conn:
         cursor = conn.cursor()
         # cursor.execute(""".table""")
-        try:
-            cursor.execute("""CREATE TABLE person
-                (
-                    id INTEGER PRIMARY KEY,
-                    name TEXT,
-                    age INTEGER
-                );""")
-            sqlite_dict_list = cursor.fetchall()
-            logging.info(f'{sqlite_dict_list=}')
-            conn.commit()
-        except Exception as err:
-            logging.error(f'<<ERROR>> {err}')
-        try:
-            cursor.execute("""INSERT INTO person (name, age) VALUES ('Tom', 37);""")
-            sqlite_dict_list = cursor.fetchall()
-            logging.info(f'{sqlite_dict_list=}')
-            conn.commit()
-        except Exception as err:
-            logging.error(f'<<ERROR>> {err}')
+        # try:
+        #     cursor.execute("""CREATE TABLE person
+        #         (
+        #             id INTEGER PRIMARY KEY,
+        #             name TEXT,
+        #             age INTEGER
+        #         );""")
+        #     sqlite_dict_list = cursor.fetchall()
+        #     logging.info(f'{sqlite_dict_list=}')
+        #     conn.commit()
+        # except Exception as err:
+        #     logging.error(f'<<ERROR>> {err}')
+        # try:
+        #     cursor.execute("""INSERT INTO person (name, age) VALUES ('Tom', 37);""")
+        #     sqlite_dict_list = cursor.fetchall()
+        #     logging.info(f'{sqlite_dict_list=}')
+        #     conn.commit()
+        # except Exception as err:
+        #     logging.error(f'<<ERROR>> {err}')
         try:
             cursor.execute("""select * from person;""")
             sqlite_dict_list = cursor.fetchall()
