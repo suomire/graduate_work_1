@@ -37,7 +37,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
 
     updated_state = ti.xcom_pull(
         key=MOVIES_UPDATED_STATE_KEY, include_prior_dates=True
-    ) or str(datetime.min)
+    ) or str(datetime.min)+'.0'
     logging.info(f'{ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY, include_prior_dates=True)=}')
     logging.info(f'{str(datetime.min)=}')
     logging.info(f'{updated_state=}, {type(updated_state)=}')
