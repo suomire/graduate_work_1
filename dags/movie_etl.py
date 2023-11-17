@@ -42,7 +42,7 @@ def in_db_branch_func(**context):
         return ["sqlite_get_updated_movies_ids", "sqlite_get_films_data"]
 
 
-@task.branch(task_id="out_db_branch_task")
+@task.branch(task_id="out_db_branch_task", trigger_rule='none_failed_min_one_success')
 def out_db_branch_func(**context):
     """Выбор базы-назначения данных"""
     # https://www.restack.io/docs/airflow-faq-authoring-and-scheduling-connections-05
@@ -148,10 +148,6 @@ with DAG(
         provide_context=True,
     )
 
-    #to avoid task skipping trigger_rule="none_failed_min_one_success"
-    #https://marclamberti.com/blog/airflow-branchpythonoperator/
-    cross = EmptyOperator(task_id="cross", trigger_rule='none_failed_min_one_success')
-
     out_branch_op = out_db_branch_func()
 
     task_es_preprocess = PythonOperator(
@@ -197,12 +193,12 @@ with DAG(
 
 init >> task_validate_params >> in_branch_op
 
-in_branch_op >> task_pg_get_movies_ids >> task_pg_get_films_data >> cross
+in_branch_op >> task_pg_get_movies_ids >> task_pg_get_films_data
+task_pg_get_films_data >> out_branch_op
 
-in_branch_op >> task_sqlite_get_movies_ids >> task_sqlite_get_films_data >> cross
+in_branch_op >> task_sqlite_get_movies_ids >> task_sqlite_get_films_data >> out_branch_op
 
-cross >> out_branch_op #cross - соединитель веток
-
-out_branch_op >> task_es_preprocess >> task_es_create_index >> task_es_write >> final
+out_branch_op >> task_es_preprocess >> task_es_create_index >> task_es_write
+task_es_write >> final
 
 out_branch_op >> task_sqlite_preprocess >> task_sqlite_write >> final
