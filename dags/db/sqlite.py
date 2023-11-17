@@ -16,7 +16,7 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 @contextmanager
 def conn_context(db_name: str):
-    db_path = '/opt/airflow' + '/' + db_name # абсолютный путь до каталога, где лежит скрипт
+    db_path = '/db/' + db_name # абсолютный путь до каталога, где лежит скрипт
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row # row_factory - данные в формате «ключ-значение»
     yield conn
