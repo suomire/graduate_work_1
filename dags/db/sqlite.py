@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.providers.sqlite.hooks.sqlite import SqliteHook
+from airflow.hooks.base_hook import BaseHook
 from psycopg2.extras import RealDictCursor
 
 from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
@@ -44,10 +45,10 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     msg = f"updated_state_sqlite = {updated_state_sqlite}, {type(updated_state_sqlite)}"
     logging.info(msg)
 
-    sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
-    logging.info(f"Host: {sqlite_hook.schema}")
+    con_details = BaseHook.get_connection(context["params"]["in_db_id"])
+    logging.info(f"Host: {con_details.schema}")
 
-    with conn_context(sqlite_hook.schema) as conn:
+    with conn_context(con_details.schema) as conn:
         curs = conn.cursor()
         curs.execute(query)
         data = curs.fetchall()
