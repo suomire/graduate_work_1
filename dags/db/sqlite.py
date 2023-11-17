@@ -44,7 +44,10 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     msg = f"updated_state_sqlite = {updated_state_sqlite}, {type(updated_state_sqlite)}"
     logging.info(msg)
 
-    with conn_context(context["params"]["id_db_params"]["schema"]) as conn:
+    sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["in_db_id"])
+    logging.info(f"Host: {sqlite_hook.schema}")
+
+    with conn_context(sqlite_hook.schema) as conn:
         curs = conn.cursor()
         curs.execute(query)
         data = curs.fetchall()
