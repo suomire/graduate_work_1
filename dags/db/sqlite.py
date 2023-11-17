@@ -122,6 +122,7 @@ def sqlite_preprocess(ti: TaskInstance, **context):
     prev_task = ti.xcom_pull(task_ids="in_db_branch_task")[-1]
     logging.info(f'{prev_task=}')
     films_data = ti.xcom_pull(task_ids=prev_task)
+    films_data = json.loads(films_data)
     logging.info(f'{films_data=}')
     if not films_data:
         logging.info("No records need to be updated")
@@ -137,7 +138,6 @@ def sqlite_write(ti: TaskInstance, **context):
     """Запись данных"""
     films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
     logging.info(f'JSON {films_data=}')
-    films_data = json.loads(films_data)
     films_data = json.loads(films_data)
     logging.info(f'{type(films_data)=}, {films_data=}')
     if not films_data:
@@ -164,7 +164,7 @@ def sqlite_write(ti: TaskInstance, **context):
 
     insertion_query = f"""
             INSERT INTO {SQLiteDBTables.film.value} 
-            VALUES ({'?,'*len(films_data[0])});
+            VALUES ({'?'+',?'*(len(films_data[0])-1)});
     """
     logging.error(f'{insertion_query}')
     logging.info(f'{len(films_data[0])=}')
