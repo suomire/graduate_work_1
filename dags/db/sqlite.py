@@ -28,7 +28,7 @@ def conn_context(db_name: str):
     # conn = sqlite3.connect(db_name)
     # По-умолчанию SQLite возвращает строки в виде кортежа значений.
     # row_factory указывает, что данные должны быть в формате «ключ-значение»
-    conn.row_factory = sqlite3.Row
+    # conn.row_factory = sqlite3.Row
     logging.info(f"{conn=}")
     yield conn
     conn.close()
