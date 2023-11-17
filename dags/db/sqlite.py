@@ -129,6 +129,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
 def sqlite_preprocess(ti: TaskInstance, **context):
     """Трансформация данных"""
     prev_task = ti.xcom_pull(task_ids="in_db_branch_task")[-1]
+    logging.info(f'{prev_task=}')
     films_data = ti.xcom_pull(task_ids=prev_task)
     logging.info(f'{films_data=}')
     if not films_data:
@@ -143,12 +144,55 @@ def sqlite_preprocess(ti: TaskInstance, **context):
 
 def sqlite_write(ti: TaskInstance, **context):
     """Запись данных"""
-    # films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
-    # logging.info(f'{films_data=}')
-    # if not films_data:
-    #     logging.info("No records need to be updated")
-    #     return
-    #
+    films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
+    logging.info(f'{films_data=}')
+    if not films_data:
+        logging.info("No records need to be updated")
+        return
+
+    #имя файла базы данных из Admin-Connections-Schema
+    db_name = BaseHook.get_connection(context["params"]["out_db_id"]).schema
+    logging.info(f"{db_name=}")
+
+    creation_query = f"""
+            CREATE TABLE IF NOT EXISTS {SQLiteDBTables.film.value} (    
+                        id TEXT PRIMARY KEY,
+                        title TEXT,
+                        description TEXT,
+                        creation_date DATE,
+                        file_path TEXT,
+                        rating FLOAT,
+                        type TEXT,
+                        created_at timestamp with time zone,
+                        updated_at timestamp with time zone
+                    );
+    """
+
+    insertion_query = f"""
+            INSERT INTO {SQLiteDBTables.film.value} 
+            VALUES ('?,'*{len(films_data[0])});
+    """
+    logging.error(f'{insertion_query}')
+    logging.info(f'{len(films_data[0])=}')
+
+    with conn_context(db_name) as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(creation_query)
+            conn.commit()
+            logging.info('SUCCESS CREATE TABLE')
+        except Exception as err:
+            logging.error(f'<<CREATION TABLE ERROR>> {err}')
+
+        try:
+            cursor.executemany(insertion_query, films_data)
+            logging.info('We have inserted', cursor.rowcount, 'records to the table.')
+            conn.commit()
+            logging.info('SUCCESS INSERT')
+        except Exception as err:
+            logging.error(f'<<SELECT ERROR>> {err}')
+
+
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["out_db_id"])
     # sqlite_con = sqlite_hook.get_conn()
     # sqlite_cur = sqlite_con.cursor()
