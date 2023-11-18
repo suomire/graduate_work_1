@@ -15,19 +15,20 @@ from airflow.utils.dates import days_ago
 from airflow.models.param import Param
 
 from settings import DBFileds, MOVIES_UPDATED_STATE_KEY
-from db.pg import pg_get_films_data, pg_get_updated_movies_ids
-from db.es import es_create_index, es_preprocess, es_write
+from db.pg import (
+    pg_get_films_data,
+    pg_get_updated_movies_ids,
+    pg_create_schema,
+    pg_preprocess,
+    pg_write,
+)
+from db.es import es_get_films_data, es_create_index, es_preprocess, es_write
 
 
 DEFAULT_ARGS = {"owner": "airflow"}
 
 
-# AVAILABLE_DB_FILEDS = ["film_id", "title", "description", "rating", 
-#                        "film_type", "film_created_at", "film_updated_at",
-#                        "actors", "writers", "directors", "genre",]
-
-
-@task.branch(task_id="in_db_branch_task")
+@task.branch(task_id="in_db_branch_task", trigger_rule="one_success")
 def in_db_branch_func(**context):
     # https://www.restack.io/docs/airflow-faq-authoring-and-scheduling-connections-05
     conn = BaseHook.get_connection(context["params"]["in_db_id"])
@@ -35,61 +36,73 @@ def in_db_branch_func(**context):
     if conn.conn_type == "postgres":
         return ["pg_get_updated_movies_ids", "pg_get_films_data"]
     if conn.conn_type == "elasticsearch":
-        return 
+        return ["es_get_films_data"]
     if conn.conn_type == "sqlite":
-        return 
-        
+        return
 
-@task.branch(task_id="out_db_branch_task")
+
+@task.branch(task_id="out_db_branch_task", trigger_rule="one_success")
 def out_db_branch_func(**context):
     # https://www.restack.io/docs/airflow-faq-authoring-and-scheduling-connections-05
     conn = BaseHook.get_connection(context["params"]["out_db_id"])
     if conn.conn_type == "postgres":
-        return 
+        return ["pg_preprocess", "pg_create_schema", "pg_write"]
     if conn.conn_type == "elasticsearch":
         return ["es_preprocess", "es_create_index", "es_write"]
     if conn.conn_type == "sqlite":
-        return 
-            
+        return
+
 
 def in_param_validator(ti: TaskInstance, **context):
     conn = BaseHook.get_connection(context["params"]["in_db_id"])
     if conn.conn_type == "postgres":
         if context["params"]["id_db_params"].get("schema") is None:
-            raise AirflowException("You must specify 'schema' in 'id_db_params' for Postgres")
+            raise AirflowException(
+                "You must specify 'schema' in 'id_db_params' for Postgres"
+            )
     elif conn.conn_type == "elasticsearch":
-        return 
+        if context["params"]["id_db_params"].get("index") is None:
+            raise AirflowException(
+                "You must specify 'index' in 'id_db_params' for ElasticSearch"
+            )
     elif conn.conn_type == "sqlite":
-        return 
+        return
     else:
         raise AirflowException("Unknown input db connection type %s", conn.conn_type)
-    
+
     conn = BaseHook.get_connection(context["params"]["out_db_id"])
     if conn.conn_type == "postgres":
         if context["params"]["out_db_params"].get("schema") is None:
-            raise AirflowException("You must specify 'schema' in 'out_db_params' for Postgres")
+            raise AirflowException(
+                "You must specify 'schema' in 'out_db_params' for Postgres"
+            )
+        if context["params"]["out_db_params"].get("table") is None:
+            raise AirflowException(
+                "You must specify 'table' in 'out_db_params' for Postgres"
+            )
     elif conn.conn_type == "elasticsearch":
-        if context["params"]["out_db_params"].get("index_name") is None:
-            raise AirflowException("You must specify 'index_name' in 'out_db_params' for ElasticSearch") 
+        if context["params"]["out_db_params"].get("index") is None:
+            raise AirflowException(
+                "You must specify 'index' in 'out_db_params' for ElasticSearch"
+            )
     elif conn.conn_type == "sqlite":
-        return 
+        return
     else:
         raise AirflowException("Unknown input db connection type %s", conn.conn_type)
 
 
-# def state_update(ti: TaskInstance, **context):
-#     start_task = ti.xcom_pull(task_ids="in_db_branch_task")[0]
-#     films_data = ti.xcom_pull(task_ids=start_task)
-#     if films_data:
-#         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(films_data[-1]["updated_at"]))
-
+def state_update(ti: TaskInstance, **context):
+    state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY)
+    logging.info(state)
+    if state:
+        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=state)
 
 
 with DAG(
     "movies-etl2-dag",
     start_date=days_ago(1),
-    # schedule_interval=timedelta(minutes=1),
-    schedule_interval="@once",
+    schedule_interval=timedelta(minutes=1),
+    # schedule_interval="@once",
     default_args=DEFAULT_ARGS,
     tags=["movies_etl"],
     catchup=False,
@@ -101,23 +114,40 @@ with DAG(
         "id_db_params": Param({"schema": "content"}, type=["object", "null"]),
         "fields": Param(["film_id", "title"], type="array", examples=DBFileds.keys()),
         "out_db_id": Param(
-            "movies_es_db", type=["string", "null"], enum=["movies_es_db", "movies_pg_db",]
+            "movies_es_db",
+            type=["string", "null"],
+            enum=[
+                "movies_es_db",
+                "movies_pg_db",
+            ],
         ),
-        "out_db_params": Param({"index_name": "content"}, type=["object", "null"]),
-    }
+        "out_db_params": Param({"index": "content"}, type=["object", "null"]),
+    },
 ) as dag:
 
     init = DummyOperator(task_id="init")
 
-
     task_validate_params = PythonOperator(
-        task_id="in_param_validator", 
-        python_callable=in_param_validator, 
+        task_id="in_param_validator",
+        python_callable=in_param_validator,
         provide_context=True,
     )
 
     # https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html#branching
     in_branch_op = in_db_branch_func()
+
+    out_branch_op = out_db_branch_func()
+
+    task_update_state = PythonOperator(
+        task_id="state_update",
+        python_callable=state_update,
+        provide_context=True,
+        trigger_rule="one_success",
+    )
+
+    final = DummyOperator(task_id="final")
+
+    ##### Postgres
 
     task_pg_get_movies_ids = PythonOperator(
         task_id="pg_get_updated_movies_ids",
@@ -125,45 +155,69 @@ with DAG(
         do_xcom_push=True,
         provide_context=True,
     )
-    
+
     task_pg_get_films_data = PythonOperator(
-        task_id="pg_get_films_data", 
+        task_id="pg_get_films_data",
         python_callable=pg_get_films_data,
         provide_context=True,
     )
 
-    out_branch_op = out_db_branch_func()
+    task_pg_create_schema = PythonOperator(
+        task_id="pg_create_schema",
+        python_callable=pg_create_schema,
+        provide_context=True,
+    )
+
+    task_pg_preprocess = PythonOperator(
+        task_id="pg_preprocess",
+        python_callable=pg_preprocess,
+        provide_context=True,
+    )
+
+    task_pg_write = PythonOperator(
+        task_id="pg_write",
+        python_callable=pg_write,
+        provide_context=True,
+    )
+
+    ##### Elasticsearch
+
+    task_es_get_films_data = PythonOperator(
+        task_id="es_get_films_data",
+        python_callable=es_get_films_data,
+        do_xcom_push=True,
+        provide_context=True,
+    )
 
     task_es_preprocess = PythonOperator(
-        task_id="es_preprocess", 
+        task_id="es_preprocess",
         python_callable=es_preprocess,
         provide_context=True,
     )
 
     task_es_create_index = PythonOperator(
-        task_id="es_create_index", 
+        task_id="es_create_index",
         python_callable=es_create_index,
         provide_context=True,
     )
-    
+
     task_es_write = PythonOperator(
-        task_id="es_write", 
+        task_id="es_write",
         python_callable=es_write,
         provide_context=True,
     )
 
-    # task_update_state = PythonOperator(
-    #     task_id="state_update", 
-    #     python_callable=state_update, 
-    #     provide_context=True,
-    # )
-
-    final = DummyOperator(task_id="final")
 
 init >> task_validate_params >> in_branch_op
 
 in_branch_op >> task_pg_get_movies_ids >> task_pg_get_films_data
 task_pg_get_films_data >> out_branch_op
+in_branch_op >> task_es_get_films_data
+task_es_get_films_data >> out_branch_op
 
+out_branch_op >> task_pg_preprocess >> task_pg_create_schema >> task_pg_write
+task_pg_write >> task_update_state
 out_branch_op >> task_es_preprocess >> task_es_create_index >> task_es_write
-task_es_write >> final
+task_es_write >> task_update_state
+
+task_update_state >> final
