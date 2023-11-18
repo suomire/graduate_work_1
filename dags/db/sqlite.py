@@ -204,7 +204,7 @@ def sqlite_write(ti: TaskInstance, **context):
                 logging.error(f'<<CREATION TABLE ERROR>> {err}')
 
             try:
-                cursor.executemany(insertion_query, films_data)
+                cursor.executemany(insertion_query, tuple(films_data))
                 logging.info('We have inserted', cursor.rowcount, 'records to the table.')
                 conn.commit()
                 logging.info('SUCCESS INSERT')
