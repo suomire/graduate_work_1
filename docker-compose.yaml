@@ -22,7 +22,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/es_schemas:/opt/airflow/es_schemas
-    - ./db.sqlite:/db_in.sqlite:ro #база источник данных
+    - ./db.sqlite:/db/db_in.sqlite:ro #база источник данных
 #    - ./db.sqlite:/db/db_out.sqlite:rw #база получатель данных
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
