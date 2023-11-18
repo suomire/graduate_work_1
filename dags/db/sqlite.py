@@ -16,8 +16,8 @@ from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
 
 @contextmanager
 def conn_context(db_name: str):
-    db_path = '/db/' + db_name # путь до каталога, где лежит скрипт
-    conn = sqlite3.connect(db_path)
+    # db_path = '/db/' + db_name # путь до каталога, где лежит скрипт
+    conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row # row_factory - данные в формате «ключ-значение»
     yield conn
     conn.close()
