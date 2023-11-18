@@ -167,10 +167,12 @@ def sqlite_write(ti: TaskInstance, **context):
                         updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
                     );
     """
+    key, value = zip(*films_data.items())
+    fields, values = tuple(key), tuple(value)
+
 
     insertion_query = f"""
-            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} 
-            {tuple([i.replace('film_id', 'id') for i in context["params"]["fields"]])}
+            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} fields
             VALUES ({'?'+',?'*(len(films_data[0])-1)});
     """
     logging.info(f'{len(films_data[0])=}')
@@ -204,7 +206,7 @@ def sqlite_write(ti: TaskInstance, **context):
                 logging.error(f'<<CREATION TABLE ERROR>> {err}')
 
             try:
-                cursor.executemany(insertion_query, tuple(films_data))
+                cursor.executemany(insertion_query, values)
                 logging.info('We have inserted', cursor.rowcount, 'records to the table.')
                 conn.commit()
                 logging.info('SUCCESS INSERT')
