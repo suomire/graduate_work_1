@@ -212,12 +212,19 @@ def sqlite_write(ti: TaskInstance, **context):
 
             try:
                 cursor.executemany(insertion_query, values_list)
-                logging.info('We have inserted', cursor.rowcount, 'records to the table.')
+                logging.info(f'INSERTED {cursor.rowcount} records to the table {SQLiteDBTables.film.value} {fields=}.')
                 conn.commit()
                 logging.info('SUCCESS INSERT')
             except Exception as err:
                 logging.error(f'<<INSERT ERROR>> {err}')
 
+            try:
+                cursor.execute("""SELECT * FROM film_work""")
+                data = cursor.fetchall()
+                data_dict = [dict(i) for i in data]
+                logging.info(f'{data_dict=}')
+            except Exception as err:
+                logging.error(f'<<SELECT ERROR>> {err}')
 
     # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["out_db_id"])
     # sqlite_con = sqlite_hook.get_conn()
