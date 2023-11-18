@@ -222,6 +222,7 @@ def sqlite_write(ti: TaskInstance, **context):
                 cursor.execute("""SELECT * FROM film_work""")
                 data = cursor.fetchall()
                 data_dict = [dict(i) for i in data]
+                logging.info(f'{len(data_dict)=}')
                 logging.info(f'{data_dict=}')
             except Exception as err:
                 logging.error(f'<<SELECT ERROR>> {err}')
