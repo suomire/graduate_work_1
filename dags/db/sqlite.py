@@ -168,8 +168,8 @@ def sqlite_write(ti: TaskInstance, **context):
                     );
     """
     values_list = []
-    for dict_a in range(len(films_data)):
-        key, value = zip(*dict.items())
+    for dict_a in films_data:
+        key, value = zip(*dict_a.items())
         fields, values = tuple(key), tuple(value)
         values_list.append(values)
     logging.info(f'{fields=}')
