@@ -169,7 +169,7 @@ def sqlite_write(ti: TaskInstance, **context):
     """
 
     insertion_query = f"""
-            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} tuple(context["params"]["fields"])
+            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} {tuple(context["params"]["fields"])}
             VALUES ({'?'+',?'*(len(films_data[0])-1)});
     """
     logging.info(f'{len(films_data[0])=}')
