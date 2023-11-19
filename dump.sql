@@ -54,7 +54,7 @@ ALTER TABLE content.film_work OWNER TO app;
 
 CREATE TABLE content.genre (
     id uuid NOT NULL,
-    name text NOT NULL,
+    name text,
     description text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone
@@ -83,7 +83,7 @@ ALTER TABLE content.genre_film_work OWNER TO app;
 
 CREATE TABLE content.person (
     id uuid NOT NULL,
-    full_name text NOT NULL,
+    full_name text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone
 );
@@ -99,7 +99,7 @@ CREATE TABLE content.person_film_work (
     id uuid NOT NULL,
     person_id uuid,
     film_work_id uuid,
-    role text NOT NULL,
+    role text,
     created_at timestamp with time zone
 );
 
@@ -112,7 +112,7 @@ ALTER TABLE content.person_film_work OWNER TO app;
 
 CREATE TABLE public.auth_group (
     id integer NOT NULL,
-    name character varying(150) NOT NULL
+    name character varying(150)
 );
 
 
