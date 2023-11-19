@@ -65,3 +65,4 @@ postgres-airflow-volume/
 
 todo
 .idea/
+/sqlite.db
