@@ -113,7 +113,7 @@ with DAG(
     params={
         "chunk_size": Param(11, type="integer", minimum=10),
         "in_db_id": Param(
-            "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db, "movies_sqlite_db_in"]
+            "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db", "movies_sqlite_db_in"]
         ),
         "id_db_params": Param({"schema": "content"}, type=["object", "null"]),
         "fields": Param(["film_id", "title"], type="array", examples=DBFileds.keys()),
@@ -123,7 +123,7 @@ with DAG(
             enum=[
                 "movies_es_db",
                 "movies_pg_db", 
-                "movies_sqlite_db_out
+                "movies_sqlite_db_out"
             ],
         ),
         "out_db_params": Param({"index": "content"}, type=["object", "null"]),
