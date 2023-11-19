@@ -42,4 +42,6 @@ film_id, title (выбрать из списка доступные поля)
 
 
 ## Доступ к Elasticsearch
-http://localhost:9200/movies/_search?pretty=true
+http://localhost:9200/content/_search?pretty=true
+
+http://158.160.121.196:9200/content/_search?pretty=true
