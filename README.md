@@ -1,12 +1,16 @@
 # Проектная работа: диплом
+https://github.com/GennadyBr/graduate_work
 
 
 ## Запуск проекта
-sudo docker compose up -d --build
-
-
-## Airflow
+docker compose up -d --build
+Доступ к Airflow
 http://0.0.0.0:8080
+
+ЛИБО
+Доступ к проекту уже запущенному на Yandex Cloud
+http://158.160.121.196:8080
+
 
 
 ## Настройка Airflow-Admin-Connection
@@ -23,7 +27,7 @@ http://0.0.0.0:8080
 ![SQLite - база получатель данных](images%2Fmovies_sqlite_db_out.png)
 
 
-##Настойка DAG Params
+## Настойка DAG Params
 ### movies_pg_db
 id_db_params и out_db_params: 	{"schema": "content", "table": "film_work"}
 
