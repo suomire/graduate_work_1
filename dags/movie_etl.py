@@ -7,6 +7,7 @@ import airflow
 from airflow import DAG
 from airflow.decorators import dag, task
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base_hook import BaseHook
 from airflow.exceptions import AirflowException
@@ -15,6 +16,7 @@ from airflow.utils.dates import days_ago
 from airflow.models.param import Param
 
 from settings import DBFileds, MOVIES_UPDATED_STATE_KEY
+from db.sqlite import sqlite_get_films_data, sqlite_get_updated_movies_ids, sqlite_preprocess, sqlite_write
 from db.pg import (
     pg_get_films_data,
     pg_get_updated_movies_ids,
@@ -24,12 +26,12 @@ from db.pg import (
 )
 from db.es import es_get_films_data, es_create_index, es_preprocess, es_write
 
-
 DEFAULT_ARGS = {"owner": "airflow"}
 
 
 @task.branch(task_id="in_db_branch_task", trigger_rule="one_success")
 def in_db_branch_func(**context):
+    """Выбор базы-источника данных"""
     # https://www.restack.io/docs/airflow-faq-authoring-and-scheduling-connections-05
     conn = BaseHook.get_connection(context["params"]["in_db_id"])
     logging.info(conn)
@@ -38,11 +40,11 @@ def in_db_branch_func(**context):
     if conn.conn_type == "elasticsearch":
         return ["es_get_films_data"]
     if conn.conn_type == "sqlite":
-        return
-
+        return ["sqlite_get_updated_movies_ids", "sqlite_get_films_data"]
 
 @task.branch(task_id="out_db_branch_task", trigger_rule="one_success")
 def out_db_branch_func(**context):
+    """Выбор базы-назначения данных"""
     # https://www.restack.io/docs/airflow-faq-authoring-and-scheduling-connections-05
     conn = BaseHook.get_connection(context["params"]["out_db_id"])
     if conn.conn_type == "postgres":
@@ -50,10 +52,11 @@ def out_db_branch_func(**context):
     if conn.conn_type == "elasticsearch":
         return ["es_preprocess", "es_create_index", "es_write"]
     if conn.conn_type == "sqlite":
-        return
+        return ["sqlite_preprocess", "sqlite_write"]
 
-
+      
 def in_param_validator(ti: TaskInstance, **context):
+    """Проверка указанной базы (источника/назначения) в списке баз"""
     conn = BaseHook.get_connection(context["params"]["in_db_id"])
     if conn.conn_type == "postgres":
         if context["params"]["id_db_params"].get("schema") is None:
@@ -66,6 +69,7 @@ def in_param_validator(ti: TaskInstance, **context):
                 "You must specify 'index' in 'id_db_params' for ElasticSearch"
             )
     elif conn.conn_type == "sqlite":
+        # в sqlite нет схемы и нет индексов
         return
     else:
         raise AirflowException("Unknown input db connection type %s", conn.conn_type)
@@ -86,6 +90,7 @@ def in_param_validator(ti: TaskInstance, **context):
                 "You must specify 'index' in 'out_db_params' for ElasticSearch"
             )
     elif conn.conn_type == "sqlite":
+        # в sqlite нет схемы и нет индексов
         return
     else:
         raise AirflowException("Unknown input db connection type %s", conn.conn_type)
@@ -96,7 +101,6 @@ def state_update(ti: TaskInstance, **context):
     logging.info(state)
     if state:
         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=state)
-
 
 with DAG(
     "movies-etl2-dag",
@@ -109,7 +113,7 @@ with DAG(
     params={
         "chunk_size": Param(11, type="integer", minimum=10),
         "in_db_id": Param(
-            "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db"]
+            "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db, "movies_sqlite_db_in"]
         ),
         "id_db_params": Param({"schema": "content"}, type=["object", "null"]),
         "fields": Param(["film_id", "title"], type="array", examples=DBFileds.keys()),
@@ -118,7 +122,8 @@ with DAG(
             type=["string", "null"],
             enum=[
                 "movies_es_db",
-                "movies_pg_db",
+                "movies_pg_db", 
+                "movies_sqlite_db_out
             ],
         ),
         "out_db_params": Param({"index": "content"}, type=["object", "null"]),
@@ -147,6 +152,35 @@ with DAG(
 
     final = DummyOperator(task_id="final")
 
+                                                 
+    ##### SQLite
+                                                 
+    task_sqlite_get_movies_ids = PythonOperator(
+        task_id="sqlite_get_updated_movies_ids",
+        python_callable=sqlite_get_updated_movies_ids,
+        do_xcom_push=True,
+        provide_context=True,
+    )
+
+    task_sqlite_get_films_data = PythonOperator(
+        task_id="sqlite_get_films_data",
+        python_callable=sqlite_get_films_data,
+        provide_context=True,
+    )                                                 
+
+    task_sqlite_preprocess = PythonOperator(
+        task_id="sqlite_preprocess",
+        python_callable=sqlite_preprocess,
+        provide_context=True,
+    )
+
+    task_sqlite_write = PythonOperator(
+        task_id="sqlite_write",
+        python_callable=sqlite_write,
+        provide_context=True,
+    )
+
+                                                 
     ##### Postgres
 
     task_pg_get_movies_ids = PythonOperator(
@@ -188,7 +222,7 @@ with DAG(
         do_xcom_push=True,
         provide_context=True,
     )
-
+                                                 
     task_es_preprocess = PythonOperator(
         task_id="es_preprocess",
         python_callable=es_preprocess,
@@ -207,17 +241,23 @@ with DAG(
         provide_context=True,
     )
 
-
 init >> task_validate_params >> in_branch_op
 
 in_branch_op >> task_pg_get_movies_ids >> task_pg_get_films_data
 task_pg_get_films_data >> out_branch_op
+
 in_branch_op >> task_es_get_films_data
 task_es_get_films_data >> out_branch_op
-
+                                                 
+in_branch_op >> task_sqlite_get_movies_ids >> task_sqlite_get_films_data >> out_branch_op
+                                                 
 out_branch_op >> task_pg_preprocess >> task_pg_create_schema >> task_pg_write
 task_pg_write >> task_update_state
+                                                 
 out_branch_op >> task_es_preprocess >> task_es_create_index >> task_es_write
 task_es_write >> task_update_state
+                                                 
+out_branch_op >> task_sqlite_preprocess >> task_sqlite_write >> task_update_state
 
 task_update_state >> final
+
