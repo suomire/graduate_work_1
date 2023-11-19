@@ -144,11 +144,11 @@ def sqlite_write(ti: TaskInstance, **context):
     """Запись данных"""
     films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
     logging.info(f'JSON {films_data=}')
-    films_data = json.loads(films_data)
-    logging.info(f'{type(films_data)=}, {films_data=}')
     if not films_data:
         logging.info("No records need to be updated")
         return
+    films_data = json.loads(films_data)
+    logging.info(f'{type(films_data)=}, {films_data=}')
 
     #имя файла базы данных из Admin-Connections-Schema
     db_name = BaseHook.get_connection(context["params"]["out_db_id"]).schema
