@@ -35,11 +35,11 @@ SET default_table_access_method = heap;
 
 CREATE TABLE content.film_work (
     id uuid NOT NULL,
-    title text NOT NULL,
+    title text,
     description text,
     creation_date date,
     rating double precision,
-    type text NOT NULL,
+    type text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
     file_path text
