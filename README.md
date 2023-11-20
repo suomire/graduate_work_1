@@ -9,7 +9,7 @@ http://0.0.0.0:8080
 
 ЛИБО
 Доступ к проекту уже запущенному на Yandex Cloud
-http://158.160.121.196:8080
+http://158.160.106.174:8080
 
 
 login airflow
@@ -47,4 +47,4 @@ film_id, title (выбрать из списка доступные поля)
 ## Доступ к Elasticsearch
 http://localhost:9200/content/_search?pretty=true
 
-http://158.160.121.196:9200/content/_search?pretty=true
+http://158.160.106.174:9200/content/_search?pretty=true
