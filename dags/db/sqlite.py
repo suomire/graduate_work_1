@@ -66,6 +66,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
 
     if data_dict:
         ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY_TMP, value=str(data_dict[-1]["updated_at"]))
+    logging.error(f'MOVIES_UPDATED_STATE_KEY_TMP {data_dict[-1]["updated_at"]=}')
     return set([x["id"] for x in data_dict])
 
 
