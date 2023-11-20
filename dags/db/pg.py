@@ -34,10 +34,10 @@ def pg_get_updated_movies_ids(ti: TaskInstance, **context):
     cursor = pg_conn.cursor(cursor_factory=RealDictCursor)
 
     updated_state = (
-        ti.xcom_pull(
-            key=MOVIES_UPDATED_STATE_KEY,
-        )
-        or datetime.min.strftime(DT_FMT)
+            ti.xcom_pull(
+                key=MOVIES_UPDATED_STATE_KEY,
+            )
+            or datetime.min.strftime(DT_FMT)
     )
     logging.info("Movies updated state: %s", updated_state)
     cursor.execute(query, (updated_state,))
@@ -131,13 +131,11 @@ def pg_create_schema(ti: TaskInstance, **context):
     logging.info(query)
     cursor.execute(query)
     pg_conn.commit()
-    logging.info(
-        "Table %s.%s is successfully created",
-        (
-            context["params"]["out_db_params"]["schema"],
-            context["params"]["out_db_params"]["table"],
-        ),
-    )
+    msg = f"""Table %s.%s is successfully created, 
+    {context["params"]["out_db_params"]["schema"]}, 
+    {context["params"]["out_db_params"]["table"]})
+    """
+    logging.info(msg),
 
 
 def pg_preprocess(ti: TaskInstance, **context):
@@ -165,14 +163,14 @@ def pg_preprocess(ti: TaskInstance, **context):
 
 
 def pg_write(ti: TaskInstance, **context):
-
     films_data = ti.xcom_pull(task_ids="pg_preprocess")
-    if not films_data:
+    logging.info(f'{films_data=}')
+    films_data = json.loads(films_data)
+    logging.info(f'{films_data=}')
+    if not len(films_data):
         logging.info("No records need to be updated")
         return
 
-    films_data = json.loads(films_data)
-    logging.info(films_data)
     logging.info("Processing %x movie:", len(films_data))
     pg_hook = PostgresHook(postgres_conn_id=context["params"]["out_db_id"])
     pg_conn = pg_hook.get_conn()
@@ -188,14 +186,14 @@ def pg_write(ti: TaskInstance, **context):
     set_fields = ", ".join(set_fields)
 
     query = (
-        f"""
+            f"""
     INSERT INTO {context['params']['out_db_params']['schema']}.{context['params']['out_db_params']['table']} ({field_properties})
     """
-        + """
+            + """
     VALUES {} 
     ON CONFLICT (id) DO UPDATE
     """
-        + f"""
+            + f"""
     SET {set_fields};
     """
     )

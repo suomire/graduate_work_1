@@ -15,7 +15,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.models.param import Param
 
-from settings import DBFileds, MOVIES_UPDATED_STATE_KEY
+from settings import DBFileds, MOVIES_UPDATED_STATE_KEY, MOVIES_UPDATED_STATE_KEY_TMP
 from db.sqlite import sqlite_get_films_data, sqlite_get_updated_movies_ids, sqlite_preprocess, sqlite_write
 from db.pg import (
     pg_get_films_data,
@@ -97,6 +97,7 @@ def in_param_validator(ti: TaskInstance, **context):
 
 
 def state_update(ti: TaskInstance, **context):
+    # state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY_TMP)
     state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY)
     logging.info(state)
     if state:
@@ -105,8 +106,8 @@ def state_update(ti: TaskInstance, **context):
 with DAG(
     "movies-etl2-dag",
     start_date=days_ago(1),
-    # schedule_interval=timedelta(minutes=1),
-    schedule_interval="@once",
+    schedule_interval=timedelta(minutes=1),
+    # schedule_interval="@once",
     default_args=DEFAULT_ARGS,
     tags=["movies_etl"],
     catchup=False,
@@ -115,7 +116,7 @@ with DAG(
         "in_db_id": Param(
             "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db", "movies_sqlite_db_in"]
         ),
-        "id_db_params": Param({"schema": "content"}, type=["object", "null"]),
+        "id_db_params": Param({"schema": "content", "table": "film_work"}, type=["object", "null"]),
         "fields": Param(["film_id", "title"], type="array", examples=DBFileds.keys()),
         "out_db_id": Param(
             "movies_es_db",
