@@ -97,10 +97,10 @@ def in_param_validator(ti: TaskInstance, **context):
 
 
 def state_update(ti: TaskInstance, **context):
-    state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY)
+    state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY_TMP)
     logging.info(state)
     if state:
-        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY_TMP, value=state)
+        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=state)
 
 with DAG(
     "movies-etl2-dag",
