@@ -167,6 +167,7 @@ def pg_preprocess(ti: TaskInstance, **context):
 def pg_write(ti: TaskInstance, **context):
 
     films_data = ti.xcom_pull(task_ids="pg_preprocess")
+    logging.info(films_data)
     if not films_data:
         logging.info("No records need to be updated")
         return
