@@ -105,8 +105,8 @@ def state_update(ti: TaskInstance, **context):
 with DAG(
     "movies-etl2-dag",
     start_date=days_ago(1),
-    # schedule_interval=timedelta(minutes=1),
-    schedule_interval="@once",
+    schedule_interval=timedelta(minutes=1),
+    # schedule_interval="@once",
     default_args=DEFAULT_ARGS,
     tags=["movies_etl"],
     catchup=False,
