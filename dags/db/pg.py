@@ -165,12 +165,12 @@ def pg_preprocess(ti: TaskInstance, **context):
 def pg_write(ti: TaskInstance, **context):
     films_data = ti.xcom_pull(task_ids="pg_preprocess")
     logging.info(f'{films_data=}')
+    films_data = json.loads(films_data)
+    logging.info(f'{films_data=}')
     if not len(films_data):
         logging.info("No records need to be updated")
         return
 
-    films_data = json.loads(films_data)
-    logging.info(f'{films_data=}')
     logging.info("Processing %x movie:", len(films_data))
     pg_hook = PostgresHook(postgres_conn_id=context["params"]["out_db_id"])
     pg_conn = pg_hook.get_conn()
