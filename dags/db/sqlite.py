@@ -11,7 +11,7 @@ from contextlib import contextmanager, closing
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base_hook import BaseHook
 
-from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
+from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY, MOVIES_UPDATED_STATE_KEY_TMP
 
 
 @contextmanager
@@ -65,7 +65,7 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
                 logging.error(f'<<SELECT ERROR>> {err}')
 
     if data_dict:
-        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(data_dict[-1]["updated_at"]))
+        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY_TMP, value=str(data_dict[-1]["updated_at"]))
     return set([x["id"] for x in data_dict])
 
 
