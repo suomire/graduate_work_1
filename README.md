@@ -12,6 +12,9 @@ http://0.0.0.0:8080
 http://158.160.121.196:8080
 
 
+login airflow
+pass airflow
+
 
 ## Настройка Airflow-Admin-Connection
 ### Postgres
