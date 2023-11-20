@@ -15,7 +15,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.models.param import Param
 
-from settings import DBFileds, MOVIES_UPDATED_STATE_KEY
+from settings import DBFileds, MOVIES_UPDATED_STATE_KEY, MOVIES_UPDATED_STATE_KEY_TMP
 from db.sqlite import sqlite_get_films_data, sqlite_get_updated_movies_ids, sqlite_preprocess, sqlite_write
 from db.pg import (
     pg_get_films_data,
@@ -97,6 +97,7 @@ def in_param_validator(ti: TaskInstance, **context):
 
 
 def state_update(ti: TaskInstance, **context):
+    # state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY_TMP)
     state = ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY)
     logging.info(state)
     if state:

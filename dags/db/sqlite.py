@@ -11,7 +11,7 @@ from contextlib import contextmanager, closing
 from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base_hook import BaseHook
 
-from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY
+from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY, MOVIES_UPDATED_STATE_KEY_TMP
 
 
 @contextmanager
@@ -44,8 +44,12 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
     logging.info(f'{ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY, include_prior_dates=True)=}')
     logging.info(f'{str(datetime.min)=}')
     logging.info(f'{updated_state=}, {type(updated_state)=}')
-    updated_state_sqlite = time.mktime(
+    try:
+        updated_state_sqlite = time.mktime(
         datetime.strptime(updated_state[:25], "%Y-%m-%d %H:%M:%S.%f").timetuple())
+    except:
+        updated_state_sqlite = updated_state
+
     msg = f"{updated_state_sqlite=}, {type(updated_state_sqlite)=}"
     logging.info(msg)
 
@@ -65,7 +69,8 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
                 logging.error(f'<<SELECT ERROR>> {err}')
 
     if data_dict:
-        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY, value=str(data_dict[-1]["updated_at"]))
+        ti.xcom_push(key=MOVIES_UPDATED_STATE_KEY_TMP, value=str(data_dict[-1]["updated_at"]))
+    logging.error(f'MOVIES_UPDATED_STATE_KEY_TMP {data_dict[-1]["updated_at"]=}')
     return set([x["id"] for x in data_dict])
 
 
