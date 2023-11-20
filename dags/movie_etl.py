@@ -115,7 +115,7 @@ with DAG(
         "in_db_id": Param(
             "movies_pg_db", type="string", enum=["movies_pg_db", "movies_es_db", "movies_sqlite_db_in"]
         ),
-        "id_db_params": Param({"schema": "content"}, type=["object", "null"]),
+        "id_db_params": Param({"schema": "content", "table": "film_work"}, type=["object", "null"]),
         "fields": Param(["film_id", "title"], type="array", examples=DBFileds.keys()),
         "out_db_id": Param(
             "movies_es_db",
