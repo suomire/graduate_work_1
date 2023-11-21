@@ -145,6 +145,82 @@ def sqlite_preprocess(ti: TaskInstance, **context):
     return json.dumps(transformed_films_data, indent=4)
 
 
+def prepare_insert_values_list(films_data):
+    values_list = []
+    fields = None
+    for dict_a in films_data:
+        key, value = zip(*dict_a.items())
+        fields, values = tuple(key), tuple(value)
+        values_list.append(values)
+    logging.info(f'{values_list[0]=}')
+    return values_list, fields
+
+
+def prepare_insert_query(films_data, fields):
+    query = f"""
+            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} {fields}
+            VALUES ({'?' + ',?' * (len(films_data[0]) - 1)});
+    """
+    logging.info(f'{len(films_data[0])=}')
+    logging.info(f'{query}')
+    return query
+
+
+def prepare_create_query():
+    return f"""
+            CREATE TABLE IF NOT EXISTS {SQLiteDBTables.film.value} (    
+                        id TEXT PRIMARY KEY,
+                        title TEXT DEFAULT 'TITLE',
+                        description TEXT DEFAULT 'DESCRIPTION',
+                        creation_date DATE DEFAULT CURRENT_DATE,
+                        file_path TEXT DEFAULT 'FILE_PATH',
+                        rating FLOAT DEFAULT 1,
+                        type TEXT DEFAULT 'TYPE',
+                        created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                        updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                    );
+    """
+
+
+def drop_table_if_exists(cursor):
+    try:
+        cursor.execute("""DROP TABLE IF EXISTS film_work;""")
+        logging.info('SUCCESS DROP TABLE')
+    except Exception as err:
+        logging.error(f'<<DROP TABLE ERROR>> {err}')
+        raise err
+
+
+def create_table(creation_query, cursor):
+    try:
+        cursor.execute(creation_query)
+        logging.info('SUCCESS CREATE TABLE')
+    except Exception as err:
+        logging.error(f'<<CREATION TABLE ERROR>> {err}')
+        raise err
+
+
+def insert_into_new_table(insertion_query, values_list, cursor):
+    try:
+        cursor.executemany(insertion_query, values_list)
+        logging.info(f'INSERTED {cursor.rowcount} records to the table {SQLiteDBTables.film.value}')
+        logging.info('SUCCESS INSERT')
+    except Exception as err:
+        logging.error(f'<<INSERT ERROR>> {err}')
+        raise err
+
+
+def test_select_count(cursor):
+    try:
+        cursor.execute("""SELECT COUNT(*) FROM film_work""")
+        data = cursor.fetchall()
+        data_dict = [dict(i) for i in data]
+        logging.info(f'{len(data_dict)=}')
+    except Exception as err:
+        logging.error(f'<<SELECT ERROR>> {err}')
+        raise err
+
+
 def sqlite_write(ti: TaskInstance, **context):
     """Запись данных"""
     films_data = ti.xcom_pull(task_ids="sqlite_preprocess")
@@ -159,84 +235,19 @@ def sqlite_write(ti: TaskInstance, **context):
     db_name = BaseHook.get_connection(context["params"]["out_db_id"]).schema
     logging.info(f"{db_name=}")
 
-    creation_query = f"""
-            CREATE TABLE IF NOT EXISTS {SQLiteDBTables.film.value} (    
-                        id TEXT PRIMARY KEY,
-                        title TEXT DEFAULT 'TITLE',
-                        description TEXT DEFAULT 'DESCRIPTION',
-                        creation_date DATE DEFAULT CURRENT_DATE,
-                        file_path TEXT DEFAULT 'FILE_PATH',
-                        rating FLOAT DEFAULT 1,
-                        type TEXT DEFAULT 'TYPE',
-                        created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-                        updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-                    );
-    """
-    values_list = []
-    for dict_a in films_data:
-        key, value = zip(*dict_a.items())
-        fields, values = tuple(key), tuple(value)
-        values_list.append(values)
-    logging.info(f'{fields=}')
-    logging.info(f'{values_list=}')
-
-    insertion_query = f"""
-            INSERT OR IGNORE INTO {SQLiteDBTables.film.value} {fields}
-            VALUES ({'?' + ',?' * (len(films_data[0]) - 1)});
-    """
-    logging.info(f'{len(films_data[0])=}')
-    logging.info(f'{insertion_query}')
+    creation_query = prepare_create_query()
+    values_list, fields = prepare_insert_values_list(films_data)
+    insertion_query = prepare_insert_query(films_data, fields)
 
     with conn_context(db_name) as conn:
         with closing(conn.cursor()) as cursor:
+            drop_table_if_exists(cursor)
+            conn.commit()
 
-            try:
-                cursor.execute("""SELECT sql FROM sqlite_master WHERE name='film_work';""")
-                schema = cursor.fetchall()
-                logging.info(f'{schema=}')
-                logging.info(f'{schema[0]=}')
-            except Exception as err:
-                logging.error(f'<<SELECT schema ERROR>> {err}')
+            create_table(creation_query, cursor)
+            conn.commit()
 
-            try:
-                cursor.execute("""DROP TABLE film_work;""")
-                conn.commit()
-                logging.info('SUCCESS DROP TABLE')
-            except Exception as err:
-                logging.error(f'<<DROP TABLE ERROR>> {err}')
+            insert_into_new_table(insertion_query, values_list, cursor)
+            conn.commit()
 
-            try:
-                cursor.execute(creation_query)
-                conn.commit()
-                logging.info('SUCCESS CREATE TABLE')
-            except Exception as err:
-                logging.error(f'<<CREATION TABLE ERROR>> {err}')
-
-            try:
-                cursor.executemany(insertion_query, values_list)
-                logging.info(f'INSERTED {cursor.rowcount} records to the table {SQLiteDBTables.film.value} {fields=}.')
-                conn.commit()
-                logging.info('SUCCESS INSERT')
-            except Exception as err:
-                logging.error(f'<<INSERT ERROR>> {err}')
-
-            try:
-                cursor.execute("""SELECT * FROM film_work""")
-                data = cursor.fetchall()
-                data_dict = [dict(i) for i in data]
-                logging.info(f'{len(data_dict)=}')
-                logging.info(f'{data_dict=}')
-            except Exception as err:
-                logging.error(f'<<SELECT ERROR>> {err}')
-
-    # sqlite_hook = SqliteHook(sqlite_conn_id=context["params"]["out_db_id"])
-    # sqlite_con = sqlite_hook.get_conn()
-    # sqlite_cur = sqlite_con.cursor()
-    # sqlite_cur.execute("""
-    #     CREATE TABLE IF NOT EXISTS contacts (
-    #     contact_id INTEGER PRIMARY KEY,
-    #     first_name TEXT NOT NULL,
-    #     last_name TEXT NOT NULL,
-    #     email TEXT NOT NULL UNIQUE,
-    #     phone TEXT NOT NULL UNIQUE
-    # );""")
+            test_select_count(cursor)
