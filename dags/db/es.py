@@ -23,18 +23,19 @@ def _es_hosts(conn) -> List[str]:
     return [f"http://{conn.host}:{conn.port}"]
 
 
-def es_get_films_data(ti: TaskInstance, **context):
-    """Сбор обновленных данных"""
-
-    conn = BaseHook.get_connection(context["params"]["in_db_id"])
+def get_es_connection(connection):
+    conn = BaseHook.get_connection(connection)
     es_hook = ElasticsearchPythonHook(hosts=_es_hosts(conn))
     es_conn = es_hook.get_conn
+    return es_conn
 
+
+def prepare_query_with_updated_state(ti: TaskInstance):
     updated_state = (
-        ti.xcom_pull(
-            key=MOVIES_UPDATED_STATE_KEY,
-        )
-        or datetime.min.strftime(DT_FMT)
+            ti.xcom_pull(
+                key=MOVIES_UPDATED_STATE_KEY,
+            )
+            or datetime.min.strftime(DT_FMT)
     )
     logging.info("Movies updated state: %s", updated_state)
 
@@ -45,22 +46,17 @@ def es_get_films_data(ti: TaskInstance, **context):
             }
         }
     }
+    return query
 
-    logging.info(query)
-    items = es_conn.search(
-        index=context["params"]["id_db_params"]["index"],
-        query=query,
-    )
 
-    items = items["hits"]["hits"]
-    logging.info(items)
-    required_fields = [DBFileds[field].value for field in context["params"]["fields"]]
+def get_transformed_items(init_items, fields):
+    required_fields = [DBFileds[field].value for field in fields]
     logging.info(required_fields)
 
     transformed_items = []
-    for item in items:
+    for init_item in init_items:
         transformed_item = {}
-        for k, v in item["_source"].items():
+        for k, v in init_item["_source"].items():
             if k not in required_fields:
                 continue
             if k == DBFileds.genre.value:
@@ -68,7 +64,29 @@ def es_get_films_data(ti: TaskInstance, **context):
             transformed_item[k] = v
         transformed_items.append(transformed_item)
 
+    return transformed_items
+
+
+def es_get_films_data(ti: TaskInstance, **context):
+    """Сбор обновленных данных"""
+
+    # get es connection
+    es_conn = get_es_connection(context["params"]["in_db_id"])
+
+    query = prepare_query_with_updated_state(ti)
+    logging.info(query)
+
+    items = es_conn.search(
+        index=context["params"]["id_db_params"]["index"],
+        query=query,
+    )
+
+    items = items["hits"]["hits"]
+    logging.info(items)
+
+    transformed_items = get_transformed_items(items, context["params"]["fields"])
     logging.info(transformed_items)
+
     if transformed_items:
         ti.xcom_push(
             key=MOVIES_UPDATED_STATE_KEY_TMP,
