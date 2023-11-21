@@ -134,10 +134,10 @@ def es_preprocess(ti: TaskInstance, **context):
     transformed_films_data = []
     for film_data in films_data:
         transformed_film_data = {}
-        for k, v in film_data.items():
-            if k == DBFileds.genre.value:
-                v = transform.get_genres(v)
-            transformed_film_data[k] = v
+        for fw_column, fw_value in film_data.items():
+            if fw_column == DBFileds.genre.value:
+                fw_value = transform.get_genres(fw_value)
+            transformed_film_data[fw_column] = fw_value
         transformed_films_data.append(transformed_film_data)
     return json.dumps(transformed_films_data, indent=4)
 
