@@ -13,6 +13,20 @@ from airflow.hooks.base_hook import BaseHook
 
 from settings import DBFileds, SQLiteDBTables, MOVIES_UPDATED_STATE_KEY, MOVIES_UPDATED_STATE_KEY_TMP
 
+SQLITE_FIELDS_TO_SQL = {
+    DBFileds.film_id.name: "fw.id",
+    DBFileds.title.name: "fw.title",
+    DBFileds.description.name: "fw.description",
+    DBFileds.rating.name: "fw.rating",
+    DBFileds.film_type.name: "fw.type",
+    DBFileds.film_created_at.name: "fw.created_at",
+    DBFileds.film_updated_at.name: "fw.updated_at",
+    DBFileds.actors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'actor')",
+    DBFileds.writers.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'writer')",
+    DBFileds.directors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'director')",
+    DBFileds.genre.name: "STRING_AGG(DISTINCT g.name, ', ')",
+}
+
 
 @contextmanager
 def conn_context(db_name: str):
@@ -76,22 +90,8 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
 
 def sqlite_get_films_data(ti: TaskInstance, **context):
     """Сбор агрегированных данных по фильмам"""
-    FILEDS2SQL = {
-        DBFileds.film_id.name: "fw.id",
-        DBFileds.title.name: "fw.title",
-        DBFileds.description.name: "fw.description",
-        DBFileds.rating.name: "fw.rating",
-        DBFileds.film_type.name: "fw.type",
-        DBFileds.film_created_at.name: "fw.created_at",
-        DBFileds.film_updated_at.name: "fw.updated_at",
-        DBFileds.actors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'actor')",
-        DBFileds.writers.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'writer')",
-        DBFileds.directors.name: "STRING_AGG(DISTINCT p.id::text || ' : ' || p.full_name, ', ') FILTER (WHERE pfw.role = 'director')",
-        DBFileds.genre.name: "STRING_AGG(DISTINCT g.name, ', ')",
-    }
-
     logging.info(f'context["params"]["fields"]= {context["params"]["fields"]}')
-    fields_query = ", ".join([FILEDS2SQL[field] for field in context["params"]["fields"]])
+    fields_query = ", ".join([SQLITE_FIELDS_TO_SQL[field] for field in context["params"]["fields"]])
 
     film_ids = ti.xcom_pull(task_ids="sqlite_get_updated_movies_ids")
     logging.info(f'film_ids= {film_ids}')

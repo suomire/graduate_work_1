@@ -17,6 +17,20 @@ from settings import (
 )
 from db_schemas.pg import MOVIE_FIELDS
 
+PG_FIELDS_TO_SQL = {
+    DBFileds.film_id.name: "fw.id",
+    DBFileds.title.name: "fw.title",
+    DBFileds.description.name: "fw.description",
+    DBFileds.rating.name: "fw.rating",
+    DBFileds.film_type.name: "fw.type",
+    DBFileds.film_created_at.name: "TO_CHAR(fw.created_at, %(dt_fmt)s) AS created_at",
+    DBFileds.film_updated_at.name: "TO_CHAR(fw.updated_at, %(dt_fmt)s) AS updated_at",
+    DBFileds.actors.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'actor') AS actors",
+    DBFileds.writers.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'writer') AS writers",
+    DBFileds.directors.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'director') AS directors",
+    DBFileds.genre.name: "JSON_AGG(DISTINCT jsonb_build_object('id', g.id::text, 'name', g.name)) AS genre",
+}
+
 
 def pg_get_updated_movies_ids(ti: TaskInstance, **context):
     """Сбор обновленных записей в таблице с фильмами"""
@@ -53,24 +67,9 @@ def pg_get_updated_movies_ids(ti: TaskInstance, **context):
 
 def pg_get_films_data(ti: TaskInstance, **context):
     """Сбор агрегированных данных по фильмам"""
-
-    FILEDS2SQL = {
-        DBFileds.film_id.name: "fw.id",
-        DBFileds.title.name: "fw.title",
-        DBFileds.description.name: "fw.description",
-        DBFileds.rating.name: "fw.rating",
-        DBFileds.film_type.name: "fw.type",
-        DBFileds.film_created_at.name: "TO_CHAR(fw.created_at, %(dt_fmt)s) AS created_at",
-        DBFileds.film_updated_at.name: "TO_CHAR(fw.updated_at, %(dt_fmt)s) AS updated_at",
-        DBFileds.actors.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'actor') AS actors",
-        DBFileds.writers.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'writer') AS writers",
-        DBFileds.directors.name: "JSON_AGG(DISTINCT jsonb_build_object('id', p.id::text, 'full_name', p.full_name)) FILTER (WHERE pfw.role = 'director') AS directors",
-        DBFileds.genre.name: "JSON_AGG(DISTINCT jsonb_build_object('id', g.id::text, 'name', g.name)) AS genre",
-    }
-
     logging.info(context["params"]["fields"])
     fields_query = ", ".join(
-        [FILEDS2SQL[field] for field in context["params"]["fields"]]
+        [PG_FIELDS_TO_SQL[field] for field in context["params"]["fields"]]
     )
     logging.info(fields_query)
 
