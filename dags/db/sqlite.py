@@ -121,7 +121,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
                 cursor.execute(query)
                 data = cursor.fetchall()
                 data_dict = [dict(i) for i in data]
-                logging.info(f'{data_dict=}')
+                logging.info(f'{data_dict[0]=}')
             except Exception as err:
                 logging.error(f'<<SELECT ERROR>> {err}')
 
