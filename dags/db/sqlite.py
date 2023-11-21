@@ -19,9 +19,9 @@ def conn_context(db_name: str):
     if 'out' in db_name:
         db_path = db_name
     else:
-        db_path = '/db/' + db_name # путь до каталога, где лежит скрипт
+        db_path = '/db/' + db_name  # путь до каталога, где лежит скрипт
     conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row # row_factory - данные в формате «ключ-значение»
+    conn.row_factory = sqlite3.Row  # row_factory - данные в формате «ключ-значение»
     yield conn
     conn.close()
 
@@ -40,20 +40,20 @@ def sqlite_get_updated_movies_ids(ti: TaskInstance, **context):
 
     updated_state = ti.xcom_pull(
         key=MOVIES_UPDATED_STATE_KEY, include_prior_dates=True
-    ) or str(datetime.min)+'.0'
+    ) or str(datetime.min) + '.0'
     logging.info(f'{ti.xcom_pull(key=MOVIES_UPDATED_STATE_KEY, include_prior_dates=True)=}')
     logging.info(f'{str(datetime.min)=}')
     logging.info(f'{updated_state=}, {type(updated_state)=}')
     try:
         updated_state_sqlite = time.mktime(
-        datetime.strptime(updated_state[:25], "%Y-%m-%d %H:%M:%S.%f").timetuple())
-    except:
+            datetime.strptime(updated_state[:25], "%Y-%m-%d %H:%M:%S.%f").timetuple())
+    except TypeError:
         updated_state_sqlite = updated_state
 
     msg = f"{updated_state_sqlite=}, {type(updated_state_sqlite)=}"
     logging.info(msg)
 
-    #имя файла базы данных из Admin-Connections-Schema
+    # имя файла базы данных из Admin-Connections-Schema
     db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
     logging.info(f"{db_name=}")
 
@@ -111,7 +111,7 @@ def sqlite_get_films_data(ti: TaskInstance, **context):
         """
     logging.info(f'query= {query}')
 
-    #имя файла базы данных из Admin-Connections-Schema
+    # имя файла базы данных из Admin-Connections-Schema
     db_name = BaseHook.get_connection(context["params"]["in_db_id"]).schema
     logging.info(f"{db_name=}")
 
@@ -155,7 +155,7 @@ def sqlite_write(ti: TaskInstance, **context):
     films_data = json.loads(films_data)
     logging.info(f'{type(films_data)=}, {films_data=}')
 
-    #имя файла базы данных из Admin-Connections-Schema
+    # имя файла базы данных из Admin-Connections-Schema
     db_name = BaseHook.get_connection(context["params"]["out_db_id"]).schema
     logging.info(f"{db_name=}")
 
@@ -180,10 +180,9 @@ def sqlite_write(ti: TaskInstance, **context):
     logging.info(f'{fields=}')
     logging.info(f'{values_list=}')
 
-
     insertion_query = f"""
             INSERT OR IGNORE INTO {SQLiteDBTables.film.value} {fields}
-            VALUES ({'?'+',?'*(len(films_data[0])-1)});
+            VALUES ({'?' + ',?' * (len(films_data[0]) - 1)});
     """
     logging.info(f'{len(films_data[0])=}')
     logging.info(f'{insertion_query}')
@@ -193,12 +192,11 @@ def sqlite_write(ti: TaskInstance, **context):
 
             try:
                 cursor.execute("""SELECT sql FROM sqlite_master WHERE name='film_work';""")
-                schema=cursor.fetchall()
+                schema = cursor.fetchall()
                 logging.info(f'{schema=}')
                 logging.info(f'{schema[0]=}')
             except Exception as err:
                 logging.error(f'<<SELECT schema ERROR>> {err}')
-
 
             try:
                 cursor.execute("""DROP TABLE film_work;""")
@@ -206,7 +204,6 @@ def sqlite_write(ti: TaskInstance, **context):
                 logging.info('SUCCESS DROP TABLE')
             except Exception as err:
                 logging.error(f'<<DROP TABLE ERROR>> {err}')
-
 
             try:
                 cursor.execute(creation_query)
